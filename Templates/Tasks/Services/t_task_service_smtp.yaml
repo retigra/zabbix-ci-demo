@@ -1,0 +1,125 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: c447e6b6bb4a47c8a6c70dff390108c9
+    name: Retigra/Tasks/Services
+  templates:
+  - uuid: 4287207d0d714ccab84cc153219d6b9f
+    template: t_task_service_smtp
+    name: Template::Task::Service::SMTP
+    groups:
+    - name: Retigra/Tasks/Services
+    items:
+    - uuid: 8a8717e025ec441a8f5d9a6eb41a8e79
+      name: 'SMTP: service performance'
+      type: SIMPLE
+      key: net.tcp.service.perf[smtp,{HOST.CONN},{$I_SMTP_PORT}]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: Checks SMTP service performance by timing the creation of a SMTP
+        session on port {$I_SMTP_PORT} .
+      tags:
+      - tag: Application
+        value: SMTP::Metrics
+    - uuid: c6d34d59b5ab4237b1898a3c07e16640
+      name: 'SMTP: service state'
+      type: SIMPLE
+      key: net.tcp.service[smtp,{HOST.CONN},{$I_SMTP_PORT}]
+      delay: '60'
+      history: 7d
+      description: 'Creates a TCP connection on port {$I_SMTP_PORT} and expects the
+        first 3 characters of the response to be “220”, followed by a space, the line
+        ending or a dash. The lines containing a dash belong to a multi-line response
+        and the response will be re-read until a line without the dash is received.
+        Then sends “QUIT\r\n”. '
+      valuemap:
+        name: Service state
+      tags:
+      - tag: Application
+        value: SMTP::Metrics
+      triggers:
+      - uuid: a89201b3c4db4eb88e3d82d17a69378e
+        expression: 
+          max(/t_task_service_smtp/net.tcp.service[smtp,{HOST.CONN},{$I_SMTP_PORT}],{$T_SMTP_STATE_TIME})=0
+        name: 'SMTP: Service is down on {HOST.NAME}'
+        priority: AVERAGE
+        description: |
+          The SMTP service on port {$I_SMTP_PORT} is not responding or is returning an invalid response.
+          This could be caused by a firewall blocking the traffic, or a SMTP service malfunction.
+      - uuid: f1f87623ca9a461ca7e8be24fbae3e91
+        expression: 
+          avg(/t_task_service_smtp/net.tcp.service[smtp,{HOST.CONN},{$I_SMTP_PORT}],{$T_SMTP_PERF_TIME})>{$T_SMTP_PERF_THRESH}
+        name: 'SMTP: Service response time is too high on {HOST.NAME}'
+        priority: WARNING
+        description: |
+          The SMTP service on port {$I_SMTP_PORT} is responding too slowly to new connection attempts.
+          This could be due to high link congestion, high system load or a great distance to the host.
+        dependencies:
+        - name: 'SMTP: Service is down on {HOST.NAME}'
+          expression: 
+            max(/t_task_service_smtp/net.tcp.service[smtp,{HOST.CONN},{$I_SMTP_PORT}],{$T_SMTP_STATE_TIME})=0
+    - uuid: 24d7601dcddf44558f6e1838a14977d7
+      name: 'SMTP: response time threshold'
+      type: CALCULATED
+      key: SmtpPerfThresh[{$T_SMTP_PERF_THRESH}]
+      delay: '300'
+      history: 1d
+      value_type: FLOAT
+      units: s
+      params: '{$T_SMTP_PERF_THRESH}'
+      description: Holds the currently configured SMTP response time threshold used
+        in triggers.
+      tags:
+      - tag: Application
+        value: SMTP::Metadata
+    macros:
+    - macro: '{$I_SMTP_PORT}'
+      value: '25'
+    - macro: '{$T_SMTP_PERF_THRESH}'
+      value: '1'
+    - macro: '{$T_SMTP_PERF_TIME}'
+      value: 5m
+    - macro: '{$T_SMTP_STATE_TIME}'
+      value: '#3'
+    valuemaps:
+    - uuid: c53070f53b354b3489ee3adfc424deeb
+      name: Service state
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+  graphs:
+  - uuid: d4b3f0e85a7844f090d48e99bfe2f6b6
+    name: 'SMTP: Performance'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MIN
+      item:
+        host: t_task_service_smtp
+        key: SmtpPerfThresh[{$T_SMTP_PERF_THRESH}]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000CC
+      item:
+        host: t_task_service_smtp
+        key: net.tcp.service.perf[smtp,{HOST.CONN},{$I_SMTP_PORT}]
+  - uuid: 6bfa75fa028441129971b48b48a3919d
+    name: 'SMTP: Service state (1=Up, 0=Down)'
+    yaxismax: '1'
+    show_triggers: NO
+    percent_left: '95'
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 1A7C11
+      calc_fnc: MIN
+      item:
+        host: t_task_service_smtp
+        key: net.tcp.service[smtp,{HOST.CONN},{$I_SMTP_PORT}]

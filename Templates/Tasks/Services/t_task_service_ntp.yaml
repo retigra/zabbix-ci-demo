@@ -1,0 +1,122 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: c447e6b6bb4a47c8a6c70dff390108c9
+    name: Retigra/Tasks/Services
+  templates:
+  - uuid: c9d8e468463f4e63b2fb27b34dbf97fe
+    template: t_task_service_ntp
+    name: Template::Task::Service::NTP
+    groups:
+    - name: Retigra/Tasks/Services
+    items:
+    - uuid: 80edc2a367df46e98a4568e787636fb7
+      name: 'NTP: service performance'
+      type: SIMPLE
+      key: net.udp.service.perf[ntp,{HOST.CONN},{$I_NTP_PORT}]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: Checks NTP service performance by timing the creation of a NTP
+        session on port {$I_NTP_PORT} .
+      tags:
+      - tag: Application
+        value: NTP::Metrics
+    - uuid: f1e7af840b384b28ae0b3e4b0efc0f76
+      name: 'NTP: service state'
+      type: SIMPLE
+      key: net.udp.service[ntp,{HOST.CONN},{$I_NTP_PORT}]
+      delay: '60'
+      history: 7d
+      description: Sends an SNTP packet over UDP to port {$I_NTP_PORT} and validates
+        the response according to RFC 4330, section 5.
+      valuemap:
+        name: Service state
+      tags:
+      - tag: Application
+        value: NTP::Metrics
+      triggers:
+      - uuid: 13c8102747f8481ab2e551d740e539f3
+        expression: 
+          max(/t_task_service_ntp/net.udp.service[ntp,{HOST.CONN},{$I_NTP_PORT}],{$T_NTP_STATE_TIME})=0
+        name: 'NTP: Service is down on {HOST.NAME}'
+        priority: AVERAGE
+        description: |
+          The NTP service on port {$I_NTP_PORT} is not responding or is returning an invalid response.
+          This could be caused by a firewall blocking the traffic, or a NTP service malfunction.
+      - uuid: f94e25cac57f45d580161ae4c2f2a857
+        expression: 
+          avg(/t_task_service_ntp/net.udp.service[ntp,{HOST.CONN},{$I_NTP_PORT}],{$T_NTP_PERF_TIME})>{$T_NTP_PERF_THRESH}
+        name: 'NTP: Service response time is too high on {HOST.NAME}'
+        priority: WARNING
+        description: |
+          The NTP service on port {$I_NTP_PORT} is responding too slowly to new connection attempts.
+          This could be due to high link congestion, high system load or a great distance to the host.
+        dependencies:
+        - name: 'NTP: Service is down on {HOST.NAME}'
+          expression: 
+            max(/t_task_service_ntp/net.udp.service[ntp,{HOST.CONN},{$I_NTP_PORT}],{$T_NTP_STATE_TIME})=0
+    - uuid: 125ccfdc8b99419886734d66e5d433b4
+      name: 'NTP: response time threshold'
+      type: CALCULATED
+      key: NtpPerfThresh[{$T_NTP_PERF_THRESH}]
+      delay: '300'
+      history: 1d
+      value_type: FLOAT
+      units: s
+      params: '{$T_NTP_PERF_THRESH}'
+      description: Holds the currently configured NTP response time threshold used
+        in triggers.
+      tags:
+      - tag: Application
+        value: NTP::Metadata
+    macros:
+    - macro: '{$I_NTP_PORT}'
+      value: '123'
+    - macro: '{$T_NTP_PERF_THRESH}'
+      value: '1'
+    - macro: '{$T_NTP_PERF_TIME}'
+      value: 5m
+    - macro: '{$T_NTP_STATE_TIME}'
+      value: '#3'
+    valuemaps:
+    - uuid: 6b1025d672ed465ebc69156e3445bf02
+      name: Service state
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+  graphs:
+  - uuid: efb56268848148d5b8977bf7298caae0
+    name: 'NTP: Performance'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MIN
+      item:
+        host: t_task_service_ntp
+        key: NtpPerfThresh[{$T_NTP_PERF_THRESH}]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000CC
+      item:
+        host: t_task_service_ntp
+        key: net.udp.service.perf[ntp,{HOST.CONN},{$I_NTP_PORT}]
+  - uuid: f023f4e63d6d4c96a2302c1609d9ce60
+    name: 'NTP: Service state (1=Up, 0=Down)'
+    yaxismax: '1'
+    show_triggers: NO
+    percent_left: '95'
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 1A7C11
+      calc_fnc: MIN
+      item:
+        host: t_task_service_ntp
+        key: net.udp.service[ntp,{HOST.CONN},{$I_NTP_PORT}]

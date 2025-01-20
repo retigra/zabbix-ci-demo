@@ -1,0 +1,122 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: c447e6b6bb4a47c8a6c70dff390108c9
+    name: Retigra/Tasks/Services
+  templates:
+  - uuid: 44ada075441e4e93913dd131c689725b
+    template: t_task_service_mysql
+    name: Template::Task::Service::Mysql
+    groups:
+    - name: Retigra/Tasks/Services
+    items:
+    - uuid: 67d7f5d6273e4205be0ed6aab7587d97
+      name: 'MYSQL: response time threshold'
+      type: CALCULATED
+      key: MysqlPerfThresh[{$T_MYSQL_PERF_THRESH}]
+      delay: '300'
+      history: 1d
+      value_type: FLOAT
+      units: s
+      params: '{$T_MYSQL_PERF_THRESH}'
+      description: Holds the currently configured MYSQL response time threshold used
+        in triggers.
+      tags:
+      - tag: Application
+        value: MYSQL::Metadata
+    - uuid: b586988d676d447fb26e64866e678389
+      name: 'MYSQL: service performance'
+      type: SIMPLE
+      key: net.tcp.service.perf[tcp,{HOST.CONN},{$I_MYSQL_PORT}]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: Checks MYSQL service performance by timing the creation of a MYSQL
+        session on port {$I_MYSQL_PORT} .
+      tags:
+      - tag: Application
+        value: MYSQL::Metrics
+    - uuid: 572299aed9424e638a7e561db516f3e6
+      name: 'MYSQL: service state'
+      type: SIMPLE
+      key: net.tcp.service[tcp,{HOST.CONN},{$I_MYSQL_PORT}]
+      delay: '60'
+      history: 7d
+      description: Checks MYSQL service state by creating a TCP connection on port
+        {$I_MYSQL_PORT} .
+      valuemap:
+        name: Service state
+      tags:
+      - tag: Application
+        value: MYSQL::Metrics
+      triggers:
+      - uuid: 255f23293cf649feb55e35243acb54bb
+        expression: 
+          max(/t_task_service_mysql/net.tcp.service[tcp,{HOST.CONN},{$I_MYSQL_PORT}],{$T_MYSQL_STATE_TIME})=0
+        name: 'MYSQL: Service is down on {HOST.NAME}'
+        priority: AVERAGE
+        description: |
+          The MYSQL service on port {$I_MYSQL_PORT} is not responding or is returning an invalid response.
+          This could be caused by a firewall blocking the traffic, or a MYSQL service malfunction.
+      - uuid: a6c1e6e6b2ca4805bddd1c5ecd293897
+        expression: 
+          avg(/t_task_service_mysql/net.tcp.service[tcp,{HOST.CONN},{$I_MYSQL_PORT}],{$T_MYSQL_PERF_TIME})>{$T_MYSQL_PERF_THRESH}
+        name: 'MYSQL: Service response time is too high on {HOST.NAME}'
+        priority: WARNING
+        description: |
+          The MYSQL service on port {$I_MYSQL_PORT} is responding too slowly to new connection attempts.
+          This could be due to high link congestion, high system load or a great distance to the host.
+        dependencies:
+        - name: 'MYSQL: Service is down on {HOST.NAME}'
+          expression: 
+            max(/t_task_service_mysql/net.tcp.service[tcp,{HOST.CONN},{$I_MYSQL_PORT}],{$T_MYSQL_STATE_TIME})=0
+    macros:
+    - macro: '{$I_MYSQL_PORT}'
+      value: '3306'
+    - macro: '{$T_MYSQL_PERF_THRESH}'
+      value: '1'
+    - macro: '{$T_MYSQL_PERF_TIME}'
+      value: 5m
+    - macro: '{$T_MYSQL_STATE_TIME}'
+      value: '#3'
+    valuemaps:
+    - uuid: 83765550e7494baf916af13cf73044ec
+      name: Service state
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+  graphs:
+  - uuid: a8409d6307fe497f9e0fded0ac115cf1
+    name: 'MYSQL: Performance'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MIN
+      item:
+        host: t_task_service_mysql
+        key: MysqlPerfThresh[{$T_MYSQL_PERF_THRESH}]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000CC
+      item:
+        host: t_task_service_mysql
+        key: net.tcp.service.perf[tcp,{HOST.CONN},{$I_MYSQL_PORT}]
+  - uuid: 16547ce42b7a478599f7b08611797d1b
+    name: 'MYSQL: Service state (1=Up, 0=Down)'
+    yaxismax: '1'
+    show_triggers: NO
+    percent_left: '95'
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 1A7C11
+      calc_fnc: MIN
+      item:
+        host: t_task_service_mysql
+        key: net.tcp.service[tcp,{HOST.CONN},{$I_MYSQL_PORT}]

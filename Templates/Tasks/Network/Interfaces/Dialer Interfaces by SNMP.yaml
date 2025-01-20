@@ -1,0 +1,97 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 17dc7db2fd4542ca9d7c3f46e40baf97
+    name: Retigra/Tasks/Network/Interfaces
+  templates:
+  - uuid: 6cdf8615c33b43d5ba4df7d28da5d544
+    template: Dialer Interfaces by SNMP
+    name: Dialer Interfaces by SNMP
+    description: |
+      Monitors a cellular interface. Set the following macros to specify the used interface and modem device:
+
+      $I_DiALER_INT
+    groups:
+    - name: Retigra/Tasks/Network/Interfaces
+    items:
+    - uuid: e3d3643ede2b475191aca53a8bf42c53
+      name: 'Dialer: interface status'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.2.2.1.8[index,.1.3.6.1.2.1.2.2.1.2,"{$I_DIALER_INT}"]
+      key: dialer.int[status]
+      delay: '120'
+      history: 7d
+      description: Monitors interface status of the Dialer interface
+      valuemap:
+        name: Interface Operational Status
+      tags:
+      - tag: Application
+        value: Dialer::Metrics
+    - uuid: 3cb5c1261365499baf90d9dff2601b75
+      name: 'Dialer: is used'
+      type: CALCULATED
+      key: dialer.is.used
+      delay: '600'
+      history: 1d
+      params: '{$M_DIALER_IS_USED}'
+      description: |
+        Monitors if the dialer interface in the device is in use.
+        If the modem is not used, set {$M_DIALER_IS_USED} to 0.
+      valuemap:
+        name: True/False
+      tags:
+      - tag: Application
+        value: Dialer::Metadata
+    - uuid: b833afe4abaf4e90af7dcf540f6e1a44
+      name: 'Dialer: IP address'
+      type: EXTERNAL
+      key: intip[{HOST.CONN},{$I_DIALER_INT}]
+      delay: '1800'
+      history: 90d
+      value_type: CHAR
+      trends: '0'
+      description: Last known IP address on the Dialer interface.
+      inventory_link: OOB_IP
+      tags:
+      - tag: Application
+        value: Dialer::Metrics
+    macros:
+    - macro: '{$I_DIALER_INT}'
+      value: Dialer1
+    - macro: '{$M_DIALER_IS_USED}'
+      value: '1'
+    valuemaps:
+    - uuid: 0e08d2737b144b8287e739600056a74e
+      name: Interface Operational Status
+      mappings:
+      - value: '1'
+        newvalue: up
+      - value: '2'
+        newvalue: down
+      - value: '3'
+        newvalue: testing
+      - value: '4'
+        newvalue: unknown
+      - value: '5'
+        newvalue: dormant
+      - value: '6'
+        newvalue: not present
+      - value: '7'
+        newvalue: lower layer down
+    - uuid: 2aef274596174688a675b9841412a419
+      name: True/False
+      mappings:
+      - value: '0'
+        newvalue: 'False'
+      - value: '1'
+        newvalue: 'True'
+  triggers:
+  - uuid: c021dd2dda9d4b4aa2827823c14221af
+    expression: last(/Dialer Interfaces by SNMP/dialer.int[status])<>1 and last(/Dialer
+      Interfaces by SNMP/dialer.int[status])<>5 and last(/Dialer Interfaces by SNMP/dialer.is.used)=1
+    name: 'Dialer: Interface is down'
+    priority: WARNING
+    description: |
+      The Dialer interface of the device is down.
+
+      If the interface in this device is not in use, set $M_DIALER_IS_USED to 0 to ignore these errors.

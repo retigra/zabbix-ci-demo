@@ -1,0 +1,112 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 73c76d84854c4a419862c1986d0d8a97
+    name: Retigra/Tasks/Apps/Mon
+  templates:
+  - uuid: 5101d836e32247168673f83d8a16bb41
+    template: Monitoring by Zabbix Host
+    name: Monitoring by Zabbix Host
+    description: Monitors Zabbix internal host properties.
+    groups:
+    - name: Retigra/Tasks/Apps/Mon
+    items:
+    - uuid: 00e5350bcc2445109952f88a114edae2
+      name: 'Zabbix: host items (total)'
+      type: INTERNAL
+      key: zabbix[host,,items]
+      delay: '1800'
+      history: 1d
+      description: Total number of items configured on the host.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+    - uuid: eff55022c65441feba8fd5e6eb901198
+      name: 'Zabbix: host items (unsupported)'
+      type: INTERNAL
+      key: zabbix[host,,items_unsupported]
+      delay: '900'
+      history: 1d
+      description: Number of unsupported items on the host.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: f9eba03648204fb9878ffca89beb9d0c
+        expression: last(/Monitoring by Zabbix Host/zabbix[host,,items_unsupported])>={$T_ZBX_UNSUPP_THRESH}
+        name: 'Zabbix: {HOST.NAME} has unsupported items'
+        priority: WARNING
+        description: |
+          The host has exceeded the threshold of {$T_ZBX_UNSUPP_THRESH} unsupported items. 
+
+          This might be due to a configuration error or timeouts that are occurring while running custom check scripts.
+
+          Number of unsupported items: {ITEM.VALUE1}
+        dependencies:
+        - name: 'Zabbix: {HOST.NAME} monitoring is unsupported'
+          expression: (last(/Monitoring by Zabbix Host/zabbix[host,,items_unsupported])
+            / last(/Monitoring by Zabbix Host/zabbix[host,,items])) * 100 >= {$T_ZBX_UNSUPP_THRESH_PERC}
+    - uuid: 0c20ed0e2d56414aa3f3bbd53ae35d0b
+      name: 'Zabbix: host maintenance status'
+      type: INTERNAL
+      key: zabbix[host,,maintenance]
+      delay: '300'
+      history: 1d
+      description: Zabbix host maintenance status
+      valuemap:
+        name: Maintenance status
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 28826a77dada45c5810fe69c49dafadb
+        expression: last(/Monitoring by Zabbix Host/zabbix[host,,maintenance])>0
+        name: 'Zabbix: {HOST.NAME} is in maintenace'
+        priority: INFO
+        description: |
+          This host is currently in Zabbix maintenance.
+          For details, see https://www.zabbix.com/documentation/3.0/manual/maintenance
+    macros:
+    - macro: '{$T_ZBX_UNSUPP_THRESH}'
+      value: '1'
+    - macro: '{$T_ZBX_UNSUPP_THRESH_PERC}'
+      value: '75'
+    valuemaps:
+    - uuid: 1bd602b7b66e45ad99bfcacebe6e07a9
+      name: Maintenance status
+      mappings:
+      - value: '0'
+        newvalue: normal
+      - value: '1'
+        newvalue: in maintenance
+      - value: '2'
+        newvalue: no data collection
+  triggers:
+  - uuid: 7daf6784deed4b64b34964c2bddd159d
+    expression: (last(/Monitoring by Zabbix Host/zabbix[host,,items_unsupported])
+      / last(/Monitoring by Zabbix Host/zabbix[host,,items])) * 100 >= {$T_ZBX_UNSUPP_THRESH_PERC}
+    name: 'Zabbix: {HOST.NAME} monitoring is unsupported'
+    priority: HIGH
+    description: |
+      {$T_ZBX_UNSUPP_THRESH_PERC}% of this hosts items are unsupported, the host status can not reliably be determined. 
+      This is probably due to a configuration error on the device, check (SNMP) configuration parameters.
+
+      Number of unsupported items: {ITEM.VALUE1} of {ITEM.VALUE2}
+  graphs:
+  - uuid: f57c1211752b404893cc0c63de2756a0
+    name: 'Zabbix: Host item stats'
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 6666FF
+      calc_fnc: MAX
+      item:
+        host: Monitoring by Zabbix Host
+        key: zabbix[host,,items]
+    - sortorder: '1'
+      drawtype: FILLED_REGION
+      color: FF6666
+      calc_fnc: MAX
+      item:
+        host: Monitoring by Zabbix Host
+        key: zabbix[host,,items_unsupported]

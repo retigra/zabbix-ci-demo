@@ -1,0 +1,122 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: c447e6b6bb4a47c8a6c70dff390108c9
+    name: Retigra/Tasks/Services
+  templates:
+  - uuid: 8b8a739b95d344d6892f039b7bc79158
+    template: t_task_service_telnet
+    name: Template::Task::Service::Telnet
+    groups:
+    - name: Retigra/Tasks/Services
+    items:
+    - uuid: ae9338ac65c246cd9c41987b139be9d4
+      name: Telnet service performance
+      type: SIMPLE
+      key: net.tcp.service.perf[telnet,{HOST.CONN},{$I_TELNET_PORT}]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: Checks telnet service performance by timing the creation of a telnet
+        session on port {$I_TELNET_PORT} .
+      tags:
+      - tag: Application
+        value: Telnet::Metrics
+    - uuid: 30e37f59ae0848fc8110f91bebb5563e
+      name: Telnet service state
+      type: SIMPLE
+      key: net.tcp.service[telnet,{HOST.CONN},{$I_TELNET_PORT}]
+      delay: '60'
+      history: 7d
+      description: Checks telnet service state by creating a TCP connection on port
+        {$I_TELNET_PORT} and expects a login prompt (':' at the end).
+      valuemap:
+        name: Service state
+      tags:
+      - tag: Application
+        value: Telnet::Metrics
+      triggers:
+      - uuid: 7e7936e7f201406abbda2639ffbb0e2e
+        expression: 
+          max(/t_task_service_telnet/net.tcp.service[telnet,{HOST.CONN},{$I_TELNET_PORT}],{$T_TELNET_STATE_TIME})=0
+        name: 'Telnet: Service is down on {HOST.NAME}'
+        priority: AVERAGE
+        description: |
+          The telnet service on port {$I_TELNET_PORT} is not responding or is returning an invalid response.
+          This could be caused by a firewall blocking the traffic, or a faulty telnet reponse.
+      - uuid: f388c3abe1e344f7bf836f9ce03f9c2a
+        expression: 
+          avg(/t_task_service_telnet/net.tcp.service[telnet,{HOST.CONN},{$I_TELNET_PORT}],{$T_TELNET_PERF_TIME})>{$T_TELNET_PERF_THRESH}
+        name: 'Telnet: Service response time is too high on {HOST.NAME}'
+        priority: WARNING
+        description: |
+          The telnet service on port {$I_TELNET_PORT} is responding too slowly to new connection attempts.
+          This could be due to high link congestion, high system load or a great distance to the host.
+        dependencies:
+        - name: 'Telnet: Service is down on {HOST.NAME}'
+          expression: 
+            max(/t_task_service_telnet/net.tcp.service[telnet,{HOST.CONN},{$I_TELNET_PORT}],{$T_TELNET_STATE_TIME})=0
+    - uuid: 2129381e66a9474d9cf7b46abe273d37
+      name: Telnet response time threshold
+      type: CALCULATED
+      key: TelnetPerfThresh[{$T_TELNET_PERF_THRESH}]
+      delay: '300'
+      history: 1d
+      value_type: FLOAT
+      units: s
+      params: '{$T_TELNET_PERF_THRESH}'
+      description: Holds the currently configured Telnet response time threshold used
+        in triggers.
+      tags:
+      - tag: Application
+        value: Telnet::Metadata
+    macros:
+    - macro: '{$I_TELNET_PORT}'
+      value: '23'
+    - macro: '{$T_TELNET_PERF_THRESH}'
+      value: '1'
+    - macro: '{$T_TELNET_PERF_TIME}'
+      value: 5m
+    - macro: '{$T_TELNET_STATE_TIME}'
+      value: '#3'
+    valuemaps:
+    - uuid: 0055a09a927c4859b3331777a59475a9
+      name: Service state
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+  graphs:
+  - uuid: 368b3c82f693452b9e7cfc63c5c30b91
+    name: 'Telnet: Performance'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MIN
+      item:
+        host: t_task_service_telnet
+        key: TelnetPerfThresh[{$T_TELNET_PERF_THRESH}]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000CC
+      item:
+        host: t_task_service_telnet
+        key: net.tcp.service.perf[telnet,{HOST.CONN},{$I_TELNET_PORT}]
+  - uuid: 3e949ccb682c45f3920f2fefa85e2423
+    name: 'Telnet: Service state (1=Up, 0=Down)'
+    yaxismax: '1'
+    show_triggers: NO
+    percent_left: '95'
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 1A7C11
+      calc_fnc: MIN
+      item:
+        host: t_task_service_telnet
+        key: net.tcp.service[telnet,{HOST.CONN},{$I_TELNET_PORT}]

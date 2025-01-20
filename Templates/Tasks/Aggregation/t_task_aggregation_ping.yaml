@@ -1,0 +1,61 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 04989fa90e2e42f89a995992f0e3e7af
+    name: Retigra/Tasks/Aggregation
+  templates:
+  - uuid: f5218754124b46e19407953969ab928f
+    template: t_task_aggregation_ping
+    name: Template::Task::Aggregation::Ping
+    description: Calculates group statistics with regard to Ping items.
+    groups:
+    - name: Retigra/Tasks/Aggregation
+    items:
+    - uuid: 7d8613343b5e4fcbbc4357acba96e2cc
+      name: 'Aggr: Average ping loss of hosts in {$I_AGGR_GROUPNAME}'
+      type: CALCULATED
+      key: 
+        grpavg["{$I_AGGR_GROUPNAME}","icmppingloss[,\"{$I_PING_PACKETS:LOSS}\",\"{$I_PING_INTERVAL:LOSS}\",\"{$I_PING_SIZE:LOSS}\",\"{$I_PING_TIMEOUT:LOSS}\"]",avg,3600]
+      delay: '3600'
+      history: 14d
+      value_type: FLOAT
+      units: '%'
+      params: 
+        avg(avg_foreach(/*/icmppingloss[,"{$I_PING_PACKETS:LOSS}","{$I_PING_INTERVAL:LOSS}","{$I_PING_SIZE:LOSS}","{$I_PING_TIMEOUT:LOSS}"]?[group="{$I_AGGR_GROUPNAME}"],3600))
+      description: Calculates the average ping loss in the last hour of all the hosts
+        in {$I_AGGR_GROUPNAME}.
+      tags:
+      - tag: Application
+        value: Aggregates::Metrics
+    - uuid: d0be1504f6024e0ca1ada75855d14692
+      name: 'Aggr: Average ping responsetime of hosts in {$I_AGGR_GROUPNAME}'
+      type: CALCULATED
+      key: 
+        grpavg["{$I_AGGR_GROUPNAME}","icmppingsec[,\"{$I_PING_PACKETS:SEC}\",\"{$I_PING_INTERVAL:SEC}\",\"{$I_PING_SIZE:SEC}\",\"{$I_PING_TIMEOUT:SEC}\"]",avg,3600]
+      delay: '3600'
+      history: 14d
+      value_type: FLOAT
+      units: s
+      params: 
+        avg(avg_foreach(/*/icmppingsec[,"{$I_PING_PACKETS:SEC}","{$I_PING_INTERVAL:SEC}","{$I_PING_SIZE:SEC}","{$I_PING_TIMEOUT:SEC}"]?[group="{$I_AGGR_GROUPNAME}"],3600))
+      description: Calculates the average ping response time in the last hour of all
+        the hosts in {$I_AGGR_GROUPNAME}.
+      tags:
+      - tag: Application
+        value: Aggregates::Metrics
+    - uuid: a6977358366e4c2caff714092b1813f8
+      name: 'Aggr: Number of hosts in {$I_AGGR_GROUPNAME} responding to ping'
+      type: CALCULATED
+      key: 
+        grpsum["{$I_AGGR_GROUPNAME}","icmpping[,\"{$I_PING_PACKETS:PING}\",\"{$I_PING_INTERVAL:PING}\",\"{$I_PING_SIZE:PING}\",\"{$I_PING_TIMEOUT:PING}\"]",last]
+      delay: '300'
+      history: 14d
+      params: 
+        sum(last_foreach(/*/icmpping[,"{$I_PING_PACKETS:PING}","{$I_PING_INTERVAL:PING}","{$I_PING_SIZE:PING}","{$I_PING_TIMEOUT:PING}"]?[group="{$I_AGGR_GROUPNAME}"]))
+      description: Counts the number of hosts responding to ICMP Ping in the hostgroup  {$I_AGGR_GROUPNAME}.
+      tags:
+      - tag: Application
+        value: Aggregates::Metrics
+    macros:
+    - macro: '{$I_AGGR_GROUPNAME}'
+      value: None

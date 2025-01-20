@@ -1,0 +1,126 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: c447e6b6bb4a47c8a6c70dff390108c9
+    name: Retigra/Tasks/Services
+  templates:
+  - uuid: 699230473e2547c89a55bb8e81f897bf
+    template: t_task_service_ssh
+    name: Template::Task::Service::SSH
+    groups:
+    - name: Retigra/Tasks/Services
+    items:
+    - uuid: 1ac2a1ff52004aec996ac43af37d7549
+      name: 'SSH: service performance'
+      type: SIMPLE
+      key: net.tcp.service.perf[ssh,{HOST.CONN},{$I_SSH_PORT}]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: Checks SSH service performance by timing the creation of a SSH
+        session on port {$I_SSH_PORT} .
+      tags:
+      - tag: Application
+        value: SSH::Metrics
+    - uuid: ccc2bda223be4f32aab7398793c97274
+      name: 'SSH: service state'
+      type: SIMPLE
+      key: net.tcp.service[ssh,{HOST.CONN},{$I_SSH_PORT}]
+      delay: '60'
+      history: 7d
+      description: Creates a TCP connection on port {$I_SSH_PORT}. If the connection
+        has been established, both sides exchange an identification string (SSH-major.minor-XXXX),
+        where major and minor are protocol versions and XXXX is a string. Zabbix checks
+        if the string matching the specification is found and then sends back the
+        string “SSH-major.minor-zabbix_agent\r\n” or “0\n” on mismatch. Default port
+        22 is used if not specified.
+      valuemap:
+        name: Service state
+      tags:
+      - tag: Application
+        value: SSH::Metrics
+      triggers:
+      - uuid: d9d3f654796e461fb5b40f77c37a926f
+        expression: 
+          max(/t_task_service_ssh/net.tcp.service[ssh,{HOST.CONN},{$I_SSH_PORT}],{$T_SSH_STATE_TIME})=0
+        name: 'SSH: Service is down on {HOST.NAME}'
+        priority: AVERAGE
+        description: |
+          The SSH service on port {$I_SSH_PORT} is not responding or is returning an invalid response.
+          This could be caused by a firewall blocking the traffic, or a SSH service malfunction.
+      - uuid: 760987fc5dca4932b3681a205fee023a
+        expression: 
+          avg(/t_task_service_ssh/net.tcp.service[ssh,{HOST.CONN},{$I_SSH_PORT}],{$T_SSH_PERF_TIME})>{$T_SSH_PERF_THRESH}
+        name: 'SSH: Service response time is too high on {HOST.NAME}'
+        priority: WARNING
+        description: |
+          The SSH service on port {$I_SSH_PORT} is responding too slowly to new connection attempts.
+          This could be due to high link congestion, high system load or a great distance to the host.
+        dependencies:
+        - name: 'SSH: Service is down on {HOST.NAME}'
+          expression: 
+            max(/t_task_service_ssh/net.tcp.service[ssh,{HOST.CONN},{$I_SSH_PORT}],{$T_SSH_STATE_TIME})=0
+    - uuid: 6af2f3e25a7045c8bba45206a8a97dea
+      name: 'SSH: response time threshold'
+      type: CALCULATED
+      key: SshPerfThresh[{$T_SSH_PERF_THRESH}]
+      delay: '300'
+      history: 1d
+      value_type: FLOAT
+      units: s
+      params: '{$T_SSH_PERF_THRESH}'
+      description: Holds the currently configured SSH response time threshold used
+        in triggers.
+      tags:
+      - tag: Application
+        value: SSH::Metadata
+    macros:
+    - macro: '{$I_SSH_PORT}'
+      value: '22'
+    - macro: '{$T_SSH_PERF_THRESH}'
+      value: '1'
+    - macro: '{$T_SSH_PERF_TIME}'
+      value: 10m
+    - macro: '{$T_SSH_STATE_TIME}'
+      value: '#3'
+    valuemaps:
+    - uuid: f7e23a438d8a426eb5fd79cacbce383c
+      name: Service state
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+  graphs:
+  - uuid: eee50c38af7249279a7c3eebcac44841
+    name: 'SSH: Performance'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MIN
+      item:
+        host: t_task_service_ssh
+        key: SshPerfThresh[{$T_SSH_PERF_THRESH}]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000CC
+      item:
+        host: t_task_service_ssh
+        key: net.tcp.service.perf[ssh,{HOST.CONN},{$I_SSH_PORT}]
+  - uuid: 5205d2b359e64085945bb2f7e92c4f9a
+    name: 'SSH: Service state (1=Up, 0=Down)'
+    yaxismax: '1'
+    show_triggers: NO
+    percent_left: '95'
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 1A7C11
+      calc_fnc: MIN
+      item:
+        host: t_task_service_ssh
+        key: net.tcp.service[ssh,{HOST.CONN},{$I_SSH_PORT}]

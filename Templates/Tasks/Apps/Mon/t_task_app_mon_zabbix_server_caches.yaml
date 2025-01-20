@@ -1,0 +1,221 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 73c76d84854c4a419862c1986d0d8a97
+    name: Retigra/Tasks/Apps/Mon
+  templates:
+  - uuid: 08640a58a47c458290f62c63d13b599d
+    template: t_task_app_mon_zabbix_server_caches
+    name: Zabbix Server Caches
+    description: Monitors Zabbix server caching
+    groups:
+    - name: Retigra/Tasks/Apps/Mon
+    items:
+    - uuid: 28df15ec0c644140a88e535efd8073df
+      name: 'Zabbix: cache free (config, %)'
+      type: INTERNAL
+      key: zabbix[rcache,buffer,pfree]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: Percentage of free Zabbix configuration cache
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: e3c7092666b6400db9d295ea36286d60
+        expression: 
+          max(/t_task_app_mon_zabbix_server_caches/zabbix[rcache,buffer,pfree],{$T_ZABBIX_CACHETIME:"rcache"})<{$T_ZABBIX_CACHEPFREE:"rcache"}
+        name: 'Zabbix: Configuration cache has less than {$T_ZABBIX_CACHEPFREE:"rcache"}%
+          free'
+        priority: AVERAGE
+    - uuid: 0d21344750854989a16b8d4994cc3af5
+      name: 'Zabbix: cache size (config, B)'
+      type: INTERNAL
+      key: zabbix[rcache,buffer,total]
+      delay: '900'
+      history: 7d
+      units: B
+      description: Total bytes of Zabbix confguration cache
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+    - uuid: 2ac618bae78a4953bf9ffbe9d9b72885
+      name: 'Zabbix: cache free (value, %)'
+      type: INTERNAL
+      key: zabbix[vcache,buffer,pfree]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: Percentage of free Zabbix value cache
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: eecdbb13f6744d3d8a02246ef4620a0a
+        expression: 
+          max(/t_task_app_mon_zabbix_server_caches/zabbix[vcache,buffer,pfree],{$T_ZABBIX_CACHETIME:"value"})<{$T_ZABBIX_CACHEPFREE:"value"}
+        name: 'Zabbix: Value cache has less than {$T_ZABBIX_CACHEPFREE:"value"}% free'
+        priority: AVERAGE
+    - uuid: 8c6de809e08844d7b6381df1ef7a8d34
+      name: 'Zabbix: cache size (value, B)'
+      type: INTERNAL
+      key: zabbix[vcache,buffer,total]
+      delay: '900'
+      history: 7d
+      units: B
+      description: Total bytes of Zabbix value cache
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+    - uuid: b17a5918350f4c138cec548a9acf460e
+      name: 'Zabbix: cache free (history, %)'
+      type: INTERNAL
+      key: zabbix[wcache,history,pfree]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: Percentage of free Zabbix history write cache
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: e5899c3b6e7c4f69a30494370c146f2b
+        expression: 
+          max(/t_task_app_mon_zabbix_server_caches/zabbix[wcache,history,pfree],{$T_ZABBIX_CACHETIME:"wcache"})<{$T_ZABBIX_CACHEPFREE:"wcache"}
+        name: 'Zabbix: History cache has less than {$T_ZABBIX_CACHEPFREE:"wcache"}%
+          free'
+        priority: AVERAGE
+    - uuid: e24d3d1ace5947d58c57fcdd6c27c831
+      name: 'Zabbix: cache size (history, B)'
+      type: INTERNAL
+      key: zabbix[wcache,history,total]
+      delay: '900'
+      history: 7d
+      units: B
+      description: Total bytes of Zabbix history write cache
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+    - uuid: 197a019749b146ec998fe579944cdf9d
+      name: 'Zabbix: cache free (index, %)'
+      type: INTERNAL
+      key: zabbix[wcache,index,pfree]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: Percentage of free Zabbix history index write cache
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: f220b78b6b914de2904723880ebe7806
+        expression: 
+          max(/t_task_app_mon_zabbix_server_caches/zabbix[wcache,index,pfree],{$T_ZABBIX_CACHETIME:"index"})<{$T_ZABBIX_CACHEPFREE:"index"}
+        name: 'Zabbix: Index cache has less than {$T_ZABBIX_CACHEPFREE:"index"}% free'
+        priority: AVERAGE
+    - uuid: 3a614b8db6f94ccf89d72772ca9b3c59
+      name: 'Zabbix: cache size (index, B)'
+      type: INTERNAL
+      key: zabbix[wcache,index,total]
+      delay: '900'
+      history: 7d
+      units: B
+      description: Total bytes of Zabbix history index write cache
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+    - uuid: e83fd4f508eb43a79d7704d98285e314
+      name: 'Zabbix: cache free (trend, %)'
+      type: INTERNAL
+      key: zabbix[wcache,trend,pfree]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: Percentage of free Zabbix trend write cache
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: dffe13dcee4b44e2a45bba8f79aae248
+        expression: 
+          max(/t_task_app_mon_zabbix_server_caches/zabbix[wcache,trend,pfree],{$T_ZABBIX_CACHETIME:"trend"})<{$T_ZABBIX_CACHEPFREE:"trend"}
+        name: 'Zabbix: trend cache has less than {$T_ZABBIX_CACHEPFREE:"trend"}% free'
+        priority: AVERAGE
+    - uuid: f6c7f5a604b04d0da1a96aef22096ad8
+      name: 'Zabbix: cache size (trend, B)'
+      type: INTERNAL
+      key: zabbix[wcache,trend,total]
+      delay: '900'
+      history: 7d
+      units: B
+      description: Total bytes of Zabbix trend write cache
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+  graphs:
+  - uuid: 7367d6102bcb4ad6a2cf64758daf06b6
+    name: 'Zabbix: Cache sizes (B)'
+    show_triggers: NO
+    type: STACKED
+    ymin_type_1: FIXED
+    graph_items:
+    - color: FF33FF
+      item:
+        host: t_task_app_mon_zabbix_server_caches
+        key: zabbix[wcache,history,total]
+    - sortorder: '1'
+      color: 99FF99
+      item:
+        host: t_task_app_mon_zabbix_server_caches
+        key: zabbix[wcache,index,total]
+    - sortorder: '2'
+      color: 00BBBB
+      item:
+        host: t_task_app_mon_zabbix_server_caches
+        key: zabbix[wcache,trend,total]
+    - sortorder: '3'
+      color: FFA500
+      item:
+        host: t_task_app_mon_zabbix_server_caches
+        key: zabbix[vcache,buffer,total]
+    - sortorder: '4'
+      color: FC6EA3
+      item:
+        host: t_task_app_mon_zabbix_server_caches
+        key: zabbix[rcache,buffer,total]
+  - uuid: 128629ccffd94c2f8715d62db14f4ee1
+    name: 'Zabbix: Cache usage (%)'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - color: FF33FF
+      item:
+        host: t_task_app_mon_zabbix_server_caches
+        key: zabbix[wcache,history,pfree]
+    - sortorder: '1'
+      color: 99FF99
+      item:
+        host: t_task_app_mon_zabbix_server_caches
+        key: zabbix[wcache,index,pfree]
+    - sortorder: '2'
+      color: 00BBBB
+      item:
+        host: t_task_app_mon_zabbix_server_caches
+        key: zabbix[wcache,trend,pfree]
+    - sortorder: '3'
+      color: FFA500
+      item:
+        host: t_task_app_mon_zabbix_server_caches
+        key: zabbix[vcache,buffer,pfree]
+    - sortorder: '4'
+      color: FC6EA3
+      item:
+        host: t_task_app_mon_zabbix_server_caches
+        key: zabbix[rcache,buffer,pfree]

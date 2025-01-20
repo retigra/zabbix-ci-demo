@@ -1,0 +1,104 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 73c76d84854c4a419862c1986d0d8a97
+    name: Retigra/Tasks/Apps/Mon
+  templates:
+  - uuid: 3ec3b0144f7341648c2ca566a0a138f0
+    template: t_task_app_mon_zabbix_server_statistics
+    name: Zabbix Server Statistics
+    description: Monitors Zabbix server statistics
+    groups:
+    - name: Retigra/Tasks/Apps/Mon
+    items:
+    - uuid: d374491ea2344dc9a64107a2f9b7fc33
+      name: 'Zabbix: server boottime'
+      type: INTERNAL
+      key: zabbix[boottime]
+      delay: '300'
+      history: 7d
+      units: unixtime
+      description: Timestamp of when the zabbix_server process was started
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: e0838390112b4125a3d60fa158351d5b
+        expression: now() - 
+          last(/t_task_app_mon_zabbix_server_statistics/zabbix[boottime])<{$T_ZABBIX_UPTIMETHRESH}
+        name: 'Zabbix: Server process was recently (re)started'
+        priority: WARNING
+        description: The Zabbix server process was restarted less then {$T_ZABBIX_UPTIMETHRESH}s
+          ago.
+    - uuid: 085f3acd72b84068853058fe3c08742f
+      name: 'Zabbix: hosts'
+      type: INTERNAL
+      key: zabbix[hosts]
+      delay: '1800'
+      history: 7d
+      units: hosts
+      description: Number of monitored hosts in Zabbix
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+    - uuid: 973939907e8c44c1b673307b44d4a56a
+      name: 'Zabbix: enabled items'
+      type: INTERNAL
+      key: zabbix[items]
+      delay: '1800'
+      history: 7d
+      units: items
+      description: Number of enabled items in Zabbix
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+    - uuid: 74f8f3f1c84d4b0ea9b7412ce00fcef0
+      name: 'Zabbix: unsupported items'
+      type: INTERNAL
+      key: zabbix[items_unsupported]
+      delay: '1800'
+      history: 7d
+      units: items
+      description: Number of unsupported items in Zabbix
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+    - uuid: e1457f102cfa4aefa790e1f231dee57c
+      name: 'Zabbix: server running (time in sec)'
+      type: INTERNAL
+      key: zabbix[uptime]
+      delay: '30'
+      history: 30d
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 10c2a66a3c7248d2ad1ffe26c9da3ec1
+        expression: 
+          last(/t_task_app_mon_zabbix_server_statistics/zabbix[uptime])<{$T_SERVER_RESTART_SUPPRESSION}
+        name: 'Zabbix: {HOST.NAME} is running for less than {$T_SERVER_RESTART_SUPPRESSION}
+          seconds.'
+        priority: INFO
+    macros:
+    - macro: '{$T_SERVER_RESTART_SUPPRESSION}'
+      value: '1800'
+    - macro: '{$T_ZABBIX_UPTIMETHRESH}'
+  graphs:
+  - uuid: c79d64863614420f88da8c32a9ccfff1
+    name: 'Zabbix: Items'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 00AA00
+      calc_fnc: MAX
+      item:
+        host: t_task_app_mon_zabbix_server_statistics
+        key: zabbix[items]
+    - sortorder: '1'
+      drawtype: DASHED_LINE
+      color: CC0000
+      calc_fnc: MAX
+      item:
+        host: t_task_app_mon_zabbix_server_statistics
+        key: zabbix[items_unsupported]

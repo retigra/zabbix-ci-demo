@@ -1,0 +1,250 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 17dc7db2fd4542ca9d7c3f46e40baf97
+    name: Retigra/Tasks/Network/Interfaces
+  templates:
+  - uuid: b6734595122a4b5797a149eed245cae7
+    template: Extended Network Interface Statistics by SNMP
+    name: Extended Network Interface Statistics by SNMP
+    description: |
+      Monitors detailed interface statistics on a device via Low Level Discovery.
+      Set the following macros as the discovery filters:
+
+      * $L_REGEX_IFSTATS_OPER : Interface operational status
+      * $L_REGEX_IFSTATS_ADMIN : Interface administrative status
+      * $L_REGEX_IFSTATS_NAME : Regexp to match interface names.
+      * $L_REGEX_IFSTATS_TYPE : Regexp to match iftype numbers in the IANA ifType MIB.
+
+      See https://www.iana.org/assignments/ianaiftype-mib/ianaiftype-mib for more info.
+    groups:
+    - name: Retigra/Tasks/Network/Interfaces
+    discovery_rules:
+    - uuid: 11c2e93155a04d4ea14803756ea4c0f6
+      name: Interface Statistics
+      type: SNMP_AGENT
+      snmp_oid: 
+        discovery[{#SNMPVALUE},IF-MIB::ifName,{#IFTYPE},IF-MIB::ifType,{#OPSTATUS},IF-MIB::ifOperStatus,{#ADMSTATUS},IF-MIB::ifAdminStatus]
+      key: IfStats
+      delay: '3600'
+      filter:
+        evaltype: AND
+        conditions:
+        - macro: '{#ADMSTATUS}'
+          value: '{$L_REGEX_IFSTATS_ADMIN}'
+          formulaid: A
+        - macro: '{#IFTYPE}'
+          value: '{$L_REGEX_IFSTATS_TYPE}'
+          formulaid: B
+        - macro: '{#OPSTATUS}'
+          value: '{$L_REGEX_IFSTATS_OPER}'
+          formulaid: C
+        - macro: '{#SNMPVALUE}'
+          value: '{$L_REGEX_IFSTATS_NAME}'
+          formulaid: D
+      lifetime: 30d
+      enabled_lifetime_type: DISABLE_NEVER
+      description: |
+        You may also consider using IF-MIB::ifType or IF-MIB::ifAlias for discovery depending on your filtering needs.
+
+        Macro's are set as global macro.
+      item_prototypes:
+      - uuid: dfd1c13b8fce434184b766e1d25d018c
+        name: 'Stats: Ingress broadcast pps on interface $1'
+        type: SNMP_AGENT
+        snmp_oid: IF-MIB::ifHCInBroadcastPkts.{#SNMPINDEX}
+        key: ifHCInBroadcastPkts[{#SNMPVALUE}]
+        delay: '300'
+        history: 7d
+        value_type: FLOAT
+        units: pps
+        description: The number of ingress broadcast packets per second.
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        tags:
+        - tag: Application
+          value: Network::Interfaces::Stats::Metrics
+      - uuid: ef0cd5252e164c23a57de4942c7c7b42
+        name: 'Stats: Ingress multicast pps on interface $1'
+        type: SNMP_AGENT
+        snmp_oid: IF-MIB::ifHCInMulticastPkts.{#SNMPINDEX}
+        key: ifHCInMulticastPkts[{#SNMPVALUE}]
+        delay: '300'
+        history: 7d
+        value_type: FLOAT
+        units: pps
+        description: The number of ingress multicast packets per second.
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        tags:
+        - tag: Application
+          value: Network::Interfaces::Stats::Metrics
+      - uuid: fe614a2ea0f84b4586e3c726c18a1eb5
+        name: 'Stats: Ingress total pps on {#SNMPVALUE}'
+        type: CALCULATED
+        key: ifHCInPkts[{#SNMPVALUE}]
+        delay: '300'
+        history: 7d
+        value_type: FLOAT
+        units: pps
+        params: 
+          last(//ifHCInBroadcastPkts[{#SNMPVALUE}])+last(//ifHCInMulticastPkts[{#SNMPVALUE}])+last(//ifHCInUcastPkts[{#SNMPVALUE}])
+        description: Total incoming packets per second (estimated).
+        tags:
+        - tag: Application
+          value: Network::Interfaces::Stats::Metrics
+      - uuid: badfef5f404943cb92c6f09945608571
+        name: 'Stats: Ingress unicast pps on interface $1'
+        type: SNMP_AGENT
+        snmp_oid: IF-MIB::ifHCInUcastPkts.{#SNMPINDEX}
+        key: ifHCInUcastPkts[{#SNMPVALUE}]
+        delay: '300'
+        history: 7d
+        value_type: FLOAT
+        units: pps
+        description: The number of ingress unicast packets per second.
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        tags:
+        - tag: Application
+          value: Network::Interfaces::Stats::Metrics
+      - uuid: 20f588fec94d41db822602a4e361024b
+        name: 'Stats: Egress broadcast pps on interface $1'
+        type: SNMP_AGENT
+        snmp_oid: IF-MIB::ifHCOutBroadcastPkts.{#SNMPINDEX}
+        key: ifHCOutBroadcastPkts[{#SNMPVALUE}]
+        delay: '300'
+        history: 7d
+        value_type: FLOAT
+        units: pps
+        description: The number of egress broadcast packets per second.
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        tags:
+        - tag: Application
+          value: Network::Interfaces::Stats::Metrics
+      - uuid: d9de53f2b7d5416abdb619117e12f4ae
+        name: 'Stats: Egress multicast pps on interface $1'
+        type: SNMP_AGENT
+        snmp_oid: IF-MIB::ifHCOutMulticastPkts.{#SNMPINDEX}
+        key: ifHCOutMulticastPkts[{#SNMPVALUE}]
+        delay: '300'
+        history: 7d
+        value_type: FLOAT
+        units: pps
+        description: The number of egress multicast packets per second.
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        tags:
+        - tag: Application
+          value: Network::Interfaces::Stats::Metrics
+      - uuid: 64e4ef3b51ef455281e417325ea26a08
+        name: 'Stats: Egress total pps on {#SNMPVALUE}'
+        type: CALCULATED
+        key: ifHCOutPkts[{#SNMPVALUE}]
+        delay: '300'
+        history: 7d
+        value_type: FLOAT
+        units: pps
+        params: 
+          last(//ifHCOutBroadcastPkts[{#SNMPVALUE}])+last(//ifHCOutMulticastPkts[{#SNMPVALUE}])+last(//ifHCOutUcastPkts[{#SNMPVALUE}])
+        description: Total outgoing packets per second (estimated).
+        tags:
+        - tag: Application
+          value: Network::Interfaces::Stats::Metrics
+      - uuid: d9d2945f33dd483d96edbad9db62083e
+        name: 'Stats: Egress unicast pps on interface $1'
+        type: SNMP_AGENT
+        snmp_oid: IF-MIB::ifHCOutUcastPkts.{#SNMPINDEX}
+        key: ifHCOutUcastPkts[{#SNMPVALUE}]
+        delay: '300'
+        history: 7d
+        value_type: FLOAT
+        units: pps
+        description: The number of egress unicast packets per second.
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        tags:
+        - tag: Application
+          value: Network::Interfaces::Stats::Metrics
+      graph_prototypes:
+      - uuid: 2a21328fbab148889d0975d5820d5584
+        name: 'Stats: {#SNMPVALUE} - Egress packets per second'
+        type: STACKED
+        ymin_type_1: FIXED
+        graph_items:
+        - color: FF3333
+          calc_fnc: MAX
+          item:
+            host: Extended Network Interface Statistics by SNMP
+            key: ifHCOutUcastPkts[{#SNMPVALUE}]
+        - sortorder: '1'
+          color: FC6EA3
+          calc_fnc: MAX
+          item:
+            host: Extended Network Interface Statistics by SNMP
+            key: ifHCOutMulticastPkts[{#SNMPVALUE}]
+        - sortorder: '2'
+          color: 6C59DC
+          calc_fnc: MAX
+          item:
+            host: Extended Network Interface Statistics by SNMP
+            key: ifHCOutBroadcastPkts[{#SNMPVALUE}]
+      - uuid: 2b9db59940034a9db4653012ba65fd74
+        name: 'Stats: {#SNMPVALUE} - Ingress packets per second'
+        type: STACKED
+        ymin_type_1: FIXED
+        graph_items:
+        - color: 33FF33
+          calc_fnc: MAX
+          item:
+            host: Extended Network Interface Statistics by SNMP
+            key: ifHCInUcastPkts[{#SNMPVALUE}]
+        - sortorder: '1'
+          color: 00EEEE
+          calc_fnc: MAX
+          item:
+            host: Extended Network Interface Statistics by SNMP
+            key: ifHCInMulticastPkts[{#SNMPVALUE}]
+        - sortorder: '2'
+          color: 0000DD
+          calc_fnc: MAX
+          item:
+            host: Extended Network Interface Statistics by SNMP
+            key: ifHCInBroadcastPkts[{#SNMPVALUE}]
+      - uuid: f697957fa9e54193a3f9d3bedeaa49c9
+        name: 'Stats: {#SNMPVALUE} - Total packets per second'
+        ymin_type_1: FIXED
+        graph_items:
+        - drawtype: BOLD_LINE
+          color: '008800'
+          item:
+            host: Extended Network Interface Statistics by SNMP
+            key: ifHCOutPkts[{#SNMPVALUE}]
+        - sortorder: '1'
+          drawtype: BOLD_LINE
+          color: '990000'
+          item:
+            host: Extended Network Interface Statistics by SNMP
+            key: ifHCInPkts[{#SNMPVALUE}]
+    macros:
+    - macro: '{$L_REGEX_IFSTATS_ADMIN}'
+      value: '1'
+    - macro: '{$L_REGEX_IFSTATS_NAME}'
+      value: ^Ethernet|^FastEthernet|^GigabitEthernet|^Eth[0-9]|^Fa[0-9]|^Gi[0-9]|^Po
+    - macro: '{$L_REGEX_IFSTATS_OPER}'
+      value: '1'
+    - macro: '{$L_REGEX_IFSTATS_TYPE}'
+      value: 6|53

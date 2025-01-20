@@ -1,0 +1,122 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: c447e6b6bb4a47c8a6c70dff390108c9
+    name: Retigra/Tasks/Services
+  templates:
+  - uuid: fb26ee07c4c74041a7e5843644875651
+    template: t_task_service_nntp
+    name: Template::Task::Service::NNTP
+    groups:
+    - name: Retigra/Tasks/Services
+    items:
+    - uuid: 52d3d3c0d1eb4c2082ee543af31c9e6f
+      name: 'NNTP: service performance'
+      type: SIMPLE
+      key: net.tcp.service.perf[nntp,{HOST.CONN},{$I_NNTP_PORT}]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: Checks NNTP service performance by timing the creation of a NNTP
+        session on port {$I_NNTP_PORT} .
+      tags:
+      - tag: Application
+        value: NNTP::Metrics
+    - uuid: c2148448420a4d1a968c1dd74d0a13a2
+      name: 'NNTP: service state'
+      type: SIMPLE
+      key: net.tcp.service[nntp,{HOST.CONN},{$I_NNTP_PORT}]
+      delay: '60'
+      history: 7d
+      description: Creates a TCP connection on port {$I_NNTP_PORT} and expects the
+        first 3 characters of the response to be “200” or “201”, then sends “QUIT\r\n”.
+      valuemap:
+        name: Service state
+      tags:
+      - tag: Application
+        value: NNTP::Metrics
+      triggers:
+      - uuid: 7431fc1e8cab4c62b1ce51f19d28a805
+        expression: 
+          max(/t_task_service_nntp/net.tcp.service[nntp,{HOST.CONN},{$I_NNTP_PORT}],{$T_NNTP_STATE_TIME})=0
+        name: 'NNTP: Service is down on {HOST.NAME}'
+        priority: AVERAGE
+        description: |
+          The NNTP service on port {$I_NNTP_PORT} is not responding or is returning an invalid response.
+          This could be caused by a firewall blocking the traffic, or a NNTP service malfunction.
+      - uuid: db5240319f144871af0577b159e16bce
+        expression: 
+          avg(/t_task_service_nntp/net.tcp.service[nntp,{HOST.CONN},{$I_NNTP_PORT}],{$T_NNTP_PERF_TIME})>{$T_NNTP_PERF_THRESH}
+        name: 'NNTP: Service response time is too high on {HOST.NAME}'
+        priority: WARNING
+        description: |
+          The NNTP service on port {$I_NNTP_PORT} is responding too slowly to new connection attempts.
+          This could be due to high link congestion, high system load or a great distance to the host.
+        dependencies:
+        - name: 'NNTP: Service is down on {HOST.NAME}'
+          expression: 
+            max(/t_task_service_nntp/net.tcp.service[nntp,{HOST.CONN},{$I_NNTP_PORT}],{$T_NNTP_STATE_TIME})=0
+    - uuid: 3e4ae51a81fc42d2bcaeb86c7cc7eb52
+      name: 'NNTP: response time threshold'
+      type: CALCULATED
+      key: NntpPerfThresh[{$T_NNTP_PERF_THRESH}]
+      delay: '300'
+      history: 1d
+      value_type: FLOAT
+      units: s
+      params: '{$T_NNTP_PERF_THRESH}'
+      description: Holds the currently configured NNTP response time threshold used
+        in triggers.
+      tags:
+      - tag: Application
+        value: NNTP::Metadata
+    macros:
+    - macro: '{$I_NNTP_PORT}'
+      value: '119'
+    - macro: '{$T_NNTP_PERF_THRESH}'
+      value: '1'
+    - macro: '{$T_NNTP_PERF_TIME}'
+      value: 5m
+    - macro: '{$T_NNTP_STATE_TIME}'
+      value: '#3'
+    valuemaps:
+    - uuid: d1994d3759644ea28cefb666b1c8b6ab
+      name: Service state
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+  graphs:
+  - uuid: ca7a78710f7c493dbe6120b12c4c5f2b
+    name: 'NNTP: Performance'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MIN
+      item:
+        host: t_task_service_nntp
+        key: NntpPerfThresh[{$T_NNTP_PERF_THRESH}]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000CC
+      item:
+        host: t_task_service_nntp
+        key: net.tcp.service.perf[nntp,{HOST.CONN},{$I_NNTP_PORT}]
+  - uuid: 08174fe774d84c9788abab4d0fc43b83
+    name: 'NNTP: Service state (1=Up, 0=Down)'
+    yaxismax: '1'
+    show_triggers: NO
+    percent_left: '95'
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 1A7C11
+      calc_fnc: MIN
+      item:
+        host: t_task_service_nntp
+        key: net.tcp.service[nntp,{HOST.CONN},{$I_NNTP_PORT}]

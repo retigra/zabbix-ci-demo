@@ -1,0 +1,122 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: c447e6b6bb4a47c8a6c70dff390108c9
+    name: Retigra/Tasks/Services
+  templates:
+  - uuid: 381f3e15e5d44d1e920de385cccfcbd0
+    template: t_task_service_tcp
+    name: Template::Task::Service::TCP
+    groups:
+    - name: Retigra/Tasks/Services
+    items:
+    - uuid: c12aa3375ba442f6bc88b48d26105ebc
+      name: 'TCP: service performance ({$I_TCP_PORT})'
+      type: SIMPLE
+      key: net.tcp.service.perf[tcp,{HOST.CONN},{$I_TCP_PORT}]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: Checks TCP port service performance by timing the creation of a
+        TCP session on port {$I_TCP_PORT} .
+      tags:
+      - tag: Application
+        value: TCP::Metrics
+    - uuid: fd9961c84d184f8aace4dc6b275260e2
+      name: 'TCP: service state ({$I_TCP_PORT})'
+      type: SIMPLE
+      key: net.tcp.service[tcp,{HOST.CONN},{$I_TCP_PORT}]
+      delay: '60'
+      history: 7d
+      description: Checks TCP port service state by creating a TCP connection on port
+        {$I_TCP_PORT} .
+      valuemap:
+        name: Service state
+      tags:
+      - tag: Application
+        value: TCP::Metrics
+      triggers:
+      - uuid: ff35548f3eff46c5ad6cd9dbc49132fe
+        expression: 
+          max(/t_task_service_tcp/net.tcp.service[tcp,{HOST.CONN},{$I_TCP_PORT}],{$T_TCP_STATE_TIME})=0
+        name: 'TCP: Service is down on {HOST.NAME}:{$I_TCP_PORT}'
+        priority: AVERAGE
+        description: |
+          The TCP service on port {$I_TCP_PORT} is not responding or is returning an invalid response.
+          This could be caused by a firewall blocking the traffic, or a service malfunction.
+      - uuid: 8f91e028fd304dadaddb758e3a77e109
+        expression: 
+          avg(/t_task_service_tcp/net.tcp.service[tcp,{HOST.CONN},{$I_TCP_PORT}],{$T_TCP_PERF_TIME})>{$T_TCP_PERF_THRESH}
+        name: 'TCP: Service response time is too high on {HOST.NAME}:{$I_TCP_PORT}'
+        priority: WARNING
+        description: |
+          The TCP service on port {$I_TCP_PORT} is responding too slowly to new connection attempts.
+          This could be due to high link congestion, high system load or a great distance to the host.
+        dependencies:
+        - name: 'TCP: Service is down on {HOST.NAME}:{$I_TCP_PORT}'
+          expression: 
+            max(/t_task_service_tcp/net.tcp.service[tcp,{HOST.CONN},{$I_TCP_PORT}],{$T_TCP_STATE_TIME})=0
+    - uuid: 91d02254c09546c3bce7f8bbdb5158a1
+      name: 'TCP: response time threshold'
+      type: CALCULATED
+      key: TcpPerfThresh[{$T_TCP_PERF_THRESH}]
+      delay: '300'
+      history: 1d
+      value_type: FLOAT
+      units: s
+      params: '{$T_TCP_PERF_THRESH}'
+      description: Holds the currently configured TCP port response time threshold
+        used in triggers.
+      tags:
+      - tag: Application
+        value: TCP::Metadata
+    macros:
+    - macro: '{$I_TCP_PORT}'
+      value: '3306'
+    - macro: '{$T_TCP_PERF_THRESH}'
+      value: '1'
+    - macro: '{$T_TCP_PERF_TIME}'
+      value: 5m
+    - macro: '{$T_TCP_STATE_TIME}'
+      value: '#3'
+    valuemaps:
+    - uuid: fe2990d30a7c472e87e64b8ad0c5b6e3
+      name: Service state
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+  graphs:
+  - uuid: fdc4544ecf51422088e68bb9166ab477
+    name: 'MYSQL: Performance'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MIN
+      item:
+        host: t_task_service_tcp
+        key: TcpPerfThresh[{$T_TCP_PERF_THRESH}]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000CC
+      item:
+        host: t_task_service_tcp
+        key: net.tcp.service.perf[tcp,{HOST.CONN},{$I_TCP_PORT}]
+  - uuid: cdbacad0b0b94fa1968a1acecb7578ac
+    name: 'MYSQL: Service state (1=Up, 0=Down)'
+    yaxismax: '1'
+    show_triggers: NO
+    percent_left: '95'
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 1A7C11
+      calc_fnc: MIN
+      item:
+        host: t_task_service_tcp
+        key: net.tcp.service[tcp,{HOST.CONN},{$I_TCP_PORT}]

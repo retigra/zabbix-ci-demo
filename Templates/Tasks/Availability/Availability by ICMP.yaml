@@ -1,0 +1,211 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 5f8dce94004240149b513836d92db98e
+    name: Retigra/Tasks/Availability
+  templates:
+  - uuid: 286ad7e1599e4583b869d2747442911c
+    template: Availability by ICMP
+    name: Availability by ICMP
+    description: Performs reachability checks via PING echo replies.
+    groups:
+    - name: Retigra/Tasks/Availability
+    items:
+    - uuid: de1b243ff19544b0afd6e13294e18e79
+      name: 'Ping: average response time (s)'
+      type: CALCULATED
+      key: icmpPingAverage["{$I_PING_AVG_TIME}"]
+      delay: '3600'
+      history: 90d
+      value_type: FLOAT
+      units: s
+      params: 
+        avg(//icmppingsec[,"{$I_PING_PACKETS:SEC}","{$I_PING_INTERVAL:SEC}","{$I_PING_SIZE:SEC}","{$I_PING_TIMEOUT:SEC}"],{$I_PING_AVG_TIME})
+      description: Average ping response time over {$I_PING_AVG_TIME}.
+      tags:
+      - tag: Application
+        value: Ping::Metrics
+    - uuid: cb6048ffb0454a2e89d9876af01cec6e
+      name: 'Ping: loss threshold (%)'
+      type: CALCULATED
+      key: IcmpPingLossThresh[{$T_PING_LOSS_THRESH}]
+      delay: '300'
+      history: 1d
+      value_type: FLOAT
+      units: '%'
+      params: '{$T_PING_LOSS_THRESH}'
+      description: Holds the currently configured PING loss threshold used in triggers.
+      tags:
+      - tag: Application
+        value: Ping::Metadata
+    - uuid: 3ba7a8f2ba63488e8264d6a5d0eb9385
+      name: 'Ping: loss (%)'
+      type: SIMPLE
+      key: 
+        icmppingloss[,"{$I_PING_PACKETS:LOSS}","{$I_PING_INTERVAL:LOSS}","{$I_PING_SIZE:LOSS}","{$I_PING_TIMEOUT:LOSS}"]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: Measures the percentage of lost PING echo reply (ping) packets.
+      tags:
+      - tag: Application
+        value: Ping::Metrics
+      triggers:
+      - uuid: 5572426e47964477bdfe01abd49e7c34
+        expression: min(/Availability by 
+          ICMP/icmppingloss[,"{$I_PING_PACKETS:LOSS}","{$I_PING_INTERVAL:LOSS}","{$I_PING_SIZE:LOSS}","{$I_PING_TIMEOUT:LOSS}"],{$T_PING_LOSS_TIME})>{$T_PING_LOSS_THRESH}
+        name: 'Ping: loss is too high on {HOST.NAME}'
+        priority: WARNING
+        description: |
+          The number of ping packets lost in transit to this host is too high (>{$T_PING_LOSS_THRESH} in {$T_PING_LOSS_TIME}).
+          This could be due to a faulty or flapping link or CPU load on the monitored host.
+        dependencies:
+        - name: 'Ping: {HOST.NAME} is not responding to requests'
+          expression: max(/Availability by 
+            ICMP/icmpping[,"{$I_PING_PACKETS:PING}","{$I_PING_INTERVAL:PING}","{$I_PING_SIZE:PING}","{$I_PING_TIMEOUT:PING}"],{$T_PING_PING_TIME})=0
+    - uuid: 393be9484e5f425fa9cf8a48b8b9360b
+      name: 'Ping: response time threshold (s)'
+      type: CALCULATED
+      key: IcmpPingResponseThresh[{$T_PING_SEC_THRESH}]
+      delay: '300'
+      history: 1d
+      value_type: FLOAT
+      units: s
+      params: '{$T_PING_SEC_THRESH}'
+      description: Holds the currently configured PING Ping response time threshold
+        used in triggers.
+      tags:
+      - tag: Application
+        value: Ping::Metadata
+    - uuid: 75eed24e3db44e4a90807660b4beb9ac
+      name: 'Ping: response time (s)'
+      type: SIMPLE
+      key: 
+        icmppingsec[,"{$I_PING_PACKETS:SEC}","{$I_PING_INTERVAL:SEC}","{$I_PING_SIZE:SEC}","{$I_PING_TIMEOUT:SEC}"]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: Measures the time to respond to an PING echo request (ping).
+      tags:
+      - tag: Application
+        value: Ping::Metrics
+      triggers:
+      - uuid: b98cd2119959414db450a6dec3d4ef2a
+        expression: avg(/Availability by 
+          ICMP/icmppingsec[,"{$I_PING_PACKETS:SEC}","{$I_PING_INTERVAL:SEC}","{$I_PING_SIZE:SEC}","{$I_PING_TIMEOUT:SEC}"],{$T_PING_SEC_TIME})>{$T_PING_SEC_THRESH}
+        name: 'Ping: response time is too high on {HOST.NAME}'
+        priority: WARNING
+        description: |
+          The host is slow to respond to ping (avg >{$T_PING_SEC_THRESH} seconds).
+          This could be caused by link congestion, high CPU loads on the host or a great distance to the monitored hosts.
+        dependencies:
+        - name: 'Ping: {HOST.NAME} is not responding to requests'
+          expression: max(/Availability by 
+            ICMP/icmpping[,"{$I_PING_PACKETS:PING}","{$I_PING_INTERVAL:PING}","{$I_PING_SIZE:PING}","{$I_PING_TIMEOUT:PING}"],{$T_PING_PING_TIME})=0
+    - uuid: 9d54a7d194da4f3b80f45592c6c1a95c
+      name: 'Ping: response'
+      type: SIMPLE
+      key: 
+        icmpping[,"{$I_PING_PACKETS:PING}","{$I_PING_INTERVAL:PING}","{$I_PING_SIZE:PING}","{$I_PING_TIMEOUT:PING}"]
+      delay: '60'
+      history: 7d
+      description: |
+        Measures if PING ping replies have been received.
+
+        0 = No Echo Reply received
+        1 = Echo Reply recieved
+      valuemap:
+        name: Service state
+      tags:
+      - tag: Application
+        value: Ping::Metrics
+      triggers:
+      - uuid: e6ccb6223b244110927aaf0b164de310
+        expression: max(/Availability by 
+          ICMP/icmpping[,"{$I_PING_PACKETS:PING}","{$I_PING_INTERVAL:PING}","{$I_PING_SIZE:PING}","{$I_PING_TIMEOUT:PING}"],{$T_PING_PING_TIME})=0
+        name: 'Ping: {HOST.NAME} is not responding to requests'
+        priority: AVERAGE
+        description: |
+          The host is not responding to PING ping requests. 
+          It could be down or ping is being blocked by a firewall.
+    macros:
+    - macro: '{$I_PING_AVG_TIME}'
+      value: 7d
+    - macro: '{$I_PING_INTERVAL}'
+      value: '500'
+    - macro: '{$I_PING_PACKETS}'
+      value: '3'
+    - macro: '{$I_PING_SIZE}'
+      value: '56'
+    - macro: '{$I_PING_TIMEOUT}'
+      value: '1000'
+    - macro: '{$T_PING_LOSS_THRESH}'
+      value: '20'
+    - macro: '{$T_PING_LOSS_TIME}'
+      value: 5m
+    - macro: '{$T_PING_PING_TIME}'
+      value: '#3'
+    - macro: '{$T_PING_SEC_THRESH}'
+      value: '0.15'
+    - macro: '{$T_PING_SEC_TIME}'
+      value: 5m
+    valuemaps:
+    - uuid: 430fe9dd2b404259bb742998eab42659
+      name: Service state
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+  graphs:
+  - uuid: 8c78f791d3194d738311816588e78bd9
+    name: 'Ping: Performance'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MIN
+      item:
+        host: Availability by ICMP
+        key: IcmpPingResponseThresh[{$T_PING_SEC_THRESH}]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 00DDDD
+      item:
+        host: Availability by ICMP
+        key: 
+          icmppingsec[,"{$I_PING_PACKETS:SEC}","{$I_PING_INTERVAL:SEC}","{$I_PING_SIZE:SEC}","{$I_PING_TIMEOUT:SEC}"]
+    - sortorder: '2'
+      drawtype: DASHED_LINE
+      color: FFA500
+      yaxisside: RIGHT
+      calc_fnc: MIN
+      item:
+        host: Availability by ICMP
+        key: IcmpPingLossThresh[{$T_PING_LOSS_THRESH}]
+    - sortorder: '3'
+      drawtype: BOLD_LINE
+      color: BB00BB
+      yaxisside: RIGHT
+      item:
+        host: Availability by ICMP
+        key: 
+          icmppingloss[,"{$I_PING_PACKETS:LOSS}","{$I_PING_INTERVAL:LOSS}","{$I_PING_SIZE:LOSS}","{$I_PING_TIMEOUT:LOSS}"]
+  - uuid: f9a66a9f84af44eaa23737cea823c524
+    name: 'Ping: Reachability (1=Up, 0=Down)'
+    yaxismax: '1'
+    show_triggers: NO
+    percent_left: '95'
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 1A7C11
+      calc_fnc: MIN
+      item:
+        host: Availability by ICMP
+        key: 
+          icmpping[,"{$I_PING_PACKETS:PING}","{$I_PING_INTERVAL:PING}","{$I_PING_SIZE:PING}","{$I_PING_TIMEOUT:PING}"]

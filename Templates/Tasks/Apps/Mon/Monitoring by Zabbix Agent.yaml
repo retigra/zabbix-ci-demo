@@ -1,0 +1,48 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 73c76d84854c4a419862c1986d0d8a97
+    name: Retigra/Tasks/Apps/Mon
+  templates:
+  - uuid: 8cfea23d2d654a3eafcf845d3b4ad4b7
+    template: Monitoring by Zabbix Agent
+    name: Monitoring by Zabbix Agent
+    description: Monitors Zabbix Agent properties.
+    groups:
+    - name: Retigra/Tasks/Apps/Mon
+    items:
+    - uuid: c6c9be8bdf2a41a5ae1520be51d11a1b
+      name: 'Zabbix: agent hostname'
+      key: agent.hostname
+      delay: '3600'
+      history: 7d
+      value_type: CHAR
+      trends: '0'
+      description: The hostname that is configured for the Zabbix agent.
+      inventory_link: ALIAS
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+    - uuid: 608b42d7f7424aa5a49ea02e2f67c9e3
+      name: 'Zabbix: agent version'
+      type: ZABBIX_ACTIVE
+      key: agent.version
+      delay: '3600'
+      history: 7d
+      value_type: CHAR
+      trends: '0'
+      description: Version of the Zabbix agent
+      inventory_link: SOFTWARE_APP_E
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 942554d105344fdb940849b0e818311c
+        expression: (last(/Monitoring by Zabbix Agent/agent.version,#1)<>last(/Monitoring
+          by Zabbix Agent/agent.version,#2))>0
+        name: 'Zabbix: Version of agent was changed on {HOST.NAME}'
+        priority: INFO
+        description: |
+          The version of the Zabbix agent has recently changed.
+
+          Current version: {ITEM.LASTVALUE1}

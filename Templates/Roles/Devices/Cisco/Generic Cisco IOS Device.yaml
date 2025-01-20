@@ -1,0 +1,30 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 26549a644269422dbae21debacb28eed
+    name: Retigra/Roles/Devices/Cisco
+  templates:
+  - uuid: 6a9f544459a8444c8973803ed53a03b9
+    template: Generic Cisco IOS Device
+    name: Generic Cisco IOS Device
+    templates:
+    - name: Availability by ICMP
+    - name: Cisco Config by SNMP
+    - name: Cisco Environment by SNMP
+    - name: Cisco System by SNMP
+    - name: Ethernet Interfaces by SNMP
+    - name: Ethernet Subinterfacs by SNMP
+    - name: Extended Network Interface Statistics by SNMP
+    - name: Generic System properties by SNMP
+    - name: VTI Network Interfaces by SNMP
+    groups:
+    - name: Retigra/Roles/Devices/Cisco
+    macros:
+    - macro: '{$T_ACTIVE_NODE}'
+      value: '1'
+    - macro: '{$T_GENERAL_CPU_THRESH}'
+      value: '60'
+    - macro: '{$T_GENERAL_FREEMEM_THRESH}'
+      value: '20'
+    - macro: '{$T_GENERAL_UPTIME_THRESH}'
+      value: '600'

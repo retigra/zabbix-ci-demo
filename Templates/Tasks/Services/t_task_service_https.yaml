@@ -1,0 +1,124 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: c447e6b6bb4a47c8a6c70dff390108c9
+    name: Retigra/Tasks/Services
+  templates:
+  - uuid: c5f0967ece884d7f9ca6df27be68b8fd
+    template: t_task_service_https
+    name: Template::Task::Service::HTTPS
+    groups:
+    - name: Retigra/Tasks/Services
+    items:
+    - uuid: 223820da0ae94743af838b9c7b2a7fdb
+      name: 'HTTPS: response time threshold'
+      type: CALCULATED
+      key: HttpsPerfThresh[{$T_HTTPS_PERF_THRESH}]
+      delay: '300'
+      history: 1d
+      value_type: FLOAT
+      units: s
+      params: '{$T_HTTPS_PERF_THRESH}'
+      description: Holds the currently configured HTTPS response time threshold used
+        in triggers.
+      tags:
+      - tag: Application
+        value: HTTPS::Metadata
+    - uuid: a03035c4996a4d4c91b6aeb78bfac203
+      name: 'HTTPS: service performance'
+      type: SIMPLE
+      key: net.tcp.service.perf[https,{HOST.CONN},{$I_HTTPS_PORT}]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: Checks HTTPS service performance by timing the creation of a HTTPS
+        session on port {$I_HTTPS_PORT} .
+      tags:
+      - tag: Application
+        value: HTTPS::Metrics
+    - uuid: f4963e6079914b34998fd83aa21a1994
+      name: 'HTTPS: service state'
+      type: SIMPLE
+      key: net.tcp.service[https,{HOST.CONN},{$I_HTTPS_PORT}]
+      delay: '60'
+      history: 7d
+      description: Uses (and only works with) libcurl, does not verify the authenticity
+        of the certificate, does not verify the host name in the SSL certificate,
+        only fetches the response header (HEAD request). Connects to TCP port {$I_HTTPS_PORT}
+        .
+      valuemap:
+        name: Service state
+      tags:
+      - tag: Application
+        value: HTTPS::Metrics
+      triggers:
+      - uuid: 17dd80c8e0174abf8bb0287ee60eb76f
+        expression: 
+          max(/t_task_service_https/net.tcp.service[https,{HOST.CONN},{$I_HTTPS_PORT}],{$T_HTTPS_STATE_TIME})=0
+        name: 'HTTPS: Service is down on {HOST.NAME}'
+        priority: AVERAGE
+        description: |
+          The HTTPS service on port {$I_HTTPS_PORT} is not responding or is returning an invalid response.
+          This could be caused by a firewall blocking the traffic, or a HTTPS service malfunction.
+      - uuid: 30d429c7972949e7a47804e6f2d08321
+        expression: 
+          avg(/t_task_service_https/net.tcp.service[https,{HOST.CONN},{$I_HTTPS_PORT}],{$T_HTTPS_PERF_TIME})>{$T_HTTPS_PERF_THRESH}
+        name: 'HTTPS: Service response time is too high on {HOST.NAME}'
+        priority: WARNING
+        description: |
+          The HTTPS service on port {$I_HTTPS_PORT} is responding too slowly to new connection attempts.
+          This could be due to high link congestion, high system load or a great distance to the host.
+        dependencies:
+        - name: 'HTTPS: Service is down on {HOST.NAME}'
+          expression: 
+            max(/t_task_service_https/net.tcp.service[https,{HOST.CONN},{$I_HTTPS_PORT}],{$T_HTTPS_STATE_TIME})=0
+    macros:
+    - macro: '{$I_HTTPS_PORT}'
+      value: '443'
+    - macro: '{$T_HTTPS_PERF_THRESH}'
+      value: '1'
+    - macro: '{$T_HTTPS_PERF_TIME}'
+      value: 5m
+    - macro: '{$T_HTTPS_STATE_TIME}'
+      value: '#3'
+    valuemaps:
+    - uuid: 9038ecd1a4754427a37b2659e8e33056
+      name: Service state
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+  graphs:
+  - uuid: 8a4bd850bf43468b8b926d003a21d36e
+    name: 'HTTPS: Performance'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MIN
+      item:
+        host: t_task_service_https
+        key: HttpsPerfThresh[{$T_HTTPS_PERF_THRESH}]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000CC
+      item:
+        host: t_task_service_https
+        key: net.tcp.service.perf[https,{HOST.CONN},{$I_HTTPS_PORT}]
+  - uuid: 470354f14e964596b09bca280aafa959
+    name: 'HTTPS: Service state (1=Up, 0=Down)'
+    yaxismax: '1'
+    show_triggers: NO
+    percent_left: '95'
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 1A7C11
+      calc_fnc: MIN
+      item:
+        host: t_task_service_https
+        key: net.tcp.service[https,{HOST.CONN},{$I_HTTPS_PORT}]

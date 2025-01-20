@@ -1,0 +1,856 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 17dc7db2fd4542ca9d7c3f46e40baf97
+    name: Retigra/Tasks/Network/Interfaces
+  templates:
+  - uuid: 09af97987d394089becafd7f3647df47
+    template: VDSL Interface by SNMP
+    name: VDSL Interface by SNMP
+    description: Monitors VDSL2 statistics.
+    groups:
+    - name: Retigra/Tasks/Network/Interfaces
+    items:
+    - uuid: fff148bcba6b4213b7a54c805bd5f48e
+      name: 'VDSL: DS Attenuation (DS1)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.251.1.1.2.1.2.{$I_VDSL_VDSL_INTINDEX}.4
+      key: vdsl.atn.ds[1]
+      delay: '300'
+      history: 7d
+      value_type: FLOAT
+      units: db
+      description: Measured difference in the total power transmitted by the peer
+        ATU and the total power received by this ATU.
+      valuemap:
+        name: VDSL Attenuation
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.1'
+      tags:
+      - tag: Application
+        value: VDSL::Attenuation
+      - tag: Application
+        value: VDSL::Metrics
+    - uuid: d71471bc31dd45f2a7a9d17622392fd7
+      name: 'VDSL: DS Attenuation (DS2)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.251.1.1.2.1.2.{$I_VDSL_VDSL_INTINDEX}.6
+      key: vdsl.atn.ds[2]
+      delay: '300'
+      history: 7d
+      value_type: FLOAT
+      units: db
+      description: Measured difference in the total power transmitted by the peer
+        ATU and the total power received by this ATU.
+      valuemap:
+        name: VDSL Attenuation
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.1'
+      tags:
+      - tag: Application
+        value: VDSL::Attenuation
+      - tag: Application
+        value: VDSL::Metrics
+    - uuid: 802c36c4f1444bcca9091e1d1b7ad8e8
+      name: 'VDSL: DS Attenuation (DS3)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.251.1.1.2.1.2.{$I_VDSL_VDSL_INTINDEX}.8
+      key: vdsl.atn.ds[3]
+      delay: '300'
+      history: 7d
+      value_type: FLOAT
+      units: db
+      description: Measured difference in the total power transmitted by the peer
+        ATU and the total power received by this ATU.
+      valuemap:
+        name: VDSL Attenuation
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.1'
+      tags:
+      - tag: Application
+        value: VDSL::Attenuation
+      - tag: Application
+        value: VDSL::Metrics
+    - uuid: 67edaec31abd4d7b817ea3849c9b28d0
+      name: 'VDSL: DS Attenuation (ATM)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.94.1.1.3.1.5[index,ifDescr,"{$I_VDSL_ADSL_INTDESC}"]
+      key: vdsl.atn.ds[atm]
+      delay: '300'
+      history: 7d
+      value_type: FLOAT
+      units: db
+      description: Measured difference in the total power transmitted by the peer
+        ATU and the total power received by this ATU.
+      valuemap:
+        name: VDSL Attenuation
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.1'
+      tags:
+      - tag: Application
+        value: VDSL::Attenuation
+      - tag: Application
+        value: VDSL::Metrics
+    - uuid: 7278bada64b847cc8e517bad61af3b83
+      name: 'VDSL: US Attenuation (US0)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.251.1.1.2.1.2.{$I_VDSL_VDSL_INTINDEX}.3
+      key: vdsl.atn.us[0]
+      delay: '300'
+      history: 7d
+      value_type: FLOAT
+      units: db
+      description: Measured difference in the total power transmitted by the peer
+        ATU and the total power received by this ATU.
+      valuemap:
+        name: VDSL Attenuation
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.1'
+      tags:
+      - tag: Application
+        value: VDSL::Attenuation
+      - tag: Application
+        value: VDSL::Metrics
+    - uuid: a71af141cc1d4f41bd7726c1f5b35ff2
+      name: 'VDSL: US Attenuation (US1)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.251.1.1.2.1.2.{$I_VDSL_VDSL_INTINDEX}.5
+      key: vdsl.atn.us[1]
+      delay: '300'
+      history: 7d
+      value_type: FLOAT
+      units: db
+      description: Measured difference in the total power transmitted by the peer
+        ATU and the total power received by this ATU.
+      valuemap:
+        name: VDSL Attenuation
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.1'
+      tags:
+      - tag: Application
+        value: VDSL::Attenuation
+      - tag: Application
+        value: VDSL::Metrics
+    - uuid: e35258dc81bf4eee87c4cfd4fc78c41b
+      name: 'VDSL: US Attenuation (US2)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.251.1.1.2.1.2.{$I_VDSL_VDSL_INTINDEX}.7
+      key: vdsl.atn.us[2]
+      delay: '300'
+      history: 7d
+      value_type: FLOAT
+      units: db
+      description: Measured difference in the total power transmitted by the peer
+        ATU and the total power received by this ATU.
+      valuemap:
+        name: VDSL Attenuation
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.1'
+      tags:
+      - tag: Application
+        value: VDSL::Attenuation
+      - tag: Application
+        value: VDSL::Metrics
+    - uuid: a5cfa9d0b52d4daf98668d0701318b34
+      name: 'VDSL: US Attenuation (US3)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.251.1.1.2.1.2.{$I_VDSL_VDSL_INTINDEX}.9
+      key: vdsl.atn.us[3]
+      delay: '300'
+      history: 7d
+      value_type: FLOAT
+      units: db
+      description: Measured difference in the total power transmitted by the peer
+        ATU and the total power received by this ATU.
+      valuemap:
+        name: VDSL Attenuation
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.1'
+      tags:
+      - tag: Application
+        value: VDSL::Attenuation
+      - tag: Application
+        value: VDSL::Metrics
+    - uuid: 840f48dfb16c48dab52a0cb54215cef1
+      name: 'VDSL: US Attenuation (ATM)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.94.1.1.2.1.5[index,ifDescr,"{$I_VDSL_ADSL_INTDESC}"]
+      key: vdsl.atn.us[atm]
+      delay: '300'
+      history: 7d
+      value_type: FLOAT
+      units: db
+      description: Measured difference in the total power transmitted by the peer
+        ATU and the total power received by this ATU.
+      valuemap:
+        name: VDSL Attenuation
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.1'
+      tags:
+      - tag: Application
+        value: VDSL::Attenuation
+      - tag: Application
+        value: VDSL::Metrics
+    - uuid: 00774e47fb5d4fd99cf0d46b81e7e15c
+      name: 'VDSL: Attainable Rate (DS)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.251.1.1.1.1.20[index,ifDescr,"{$I_VDSL_VDSL_INTDESC}"]
+      key: vdsl.attnrate[DS]
+      delay: '300'
+      history: 7d
+      units: bps
+      description: The attainable downstream rate on {$I_VDSL_VDSL_INTDESC} in bits/s
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+      - tag: Application
+        value: VDSL::Speed
+      triggers:
+      - uuid: 073b9635274f476289b7572034bafc9a
+        expression: last(/VDSL Interface by SNMP/vdsl.attnrate[DS])>0 and last(/VDSL
+          Interface by SNMP/vdsl.attnrate[DS])<({$T_VDSL_RATE_THRESH_DS}*1000)
+        name: 'VDSL: Downstream speed is less than {$T_VDSL_RATE_THRESH_DS} kbps'
+        priority: WARNING
+        description: |
+          The upstream channel of the VDSL interface is less then {$T_VDSL_RATE_THRESH_DS} kbps. This location might experience performance degradation.
+
+          Current attainable DS rate: {ITEM.VALUE1}
+    - uuid: 249eb973fcd24b81bb6f7ec464da7a12
+      name: 'VDSL: Attainable Rate (US)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.251.1.1.1.1.21[index,ifDescr,"{$I_VDSL_VDSL_INTDESC}"]
+      key: vdsl.attnrate[US]
+      delay: '300'
+      history: 7d
+      units: bps
+      description: The attainable upstream rate on {$I_VDSL_VDSL_INTDESC} in bits/s.
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+      - tag: Application
+        value: VDSL::Speed
+      triggers:
+      - uuid: 1566d2b980c9489ebe7b43c0f4f10e33
+        expression: last(/VDSL Interface by SNMP/vdsl.attnrate[US])>0 and last(/VDSL
+          Interface by SNMP/vdsl.attnrate[US])<({$T_VDSL_RATE_THRESH_US}*1000)
+        name: 'VDSL: Upstream speed is less than {$T_VDSL_RATE_THRESH_US} kbps'
+        priority: WARNING
+        description: |
+          The upstream channel of the VDSL interface is less then {$T_VDSL_RATE_THRESH_US} kbps. This location might experience performance degradation.
+
+          Current attainable US rate: {ITEM.VALUE1}
+    - uuid: a9c6677bdd5245f184b99bacdb3c4292
+      name: 'VDSL: Blocks uncorrected (Total)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.94.1.1.10.1.4[index,ifDescr,"{$I_VDSL_ADSL_INTDESC}"]
+      key: vdsl.err[total]
+      delay: '600'
+      history: 7d
+      description: Total number of uncorrected blocks on {$I_VDSL_ADSL_INTDESC}.
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+    - uuid: 494c532417554cd593c33bc5c93f8ccc
+      name: 'VDSL: Number of inits (24hr)'
+      type: CALCULATED
+      key: vdsl.inits[24hr]
+      delay: '3600'
+      history: 1d
+      units: inits
+      params: max(//vdsl.inits[total],86400s)-min(//vdsl.inits[total],86400s)
+      description: Calculation of the number of inits on {$I_VDSL_ATM_INTDESC} in
+        the last 24hrs.
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+      triggers:
+      - uuid: 61c8c9af5fe4431eb8c99eff43b69c6f
+        expression: last(/VDSL Interface by SNMP/vdsl.inits[24hr])>{$T_VDSL_INIT_THRESH}
+        name: 'VDSL: More than {$T_VDSL_INIT_THRESH} inits during the last 24hrs'
+        priority: WARNING
+        description: |
+          The number of VDSL inits on the controller have exceeded the daily threshold of {$T_VDSL_INIT_THRESH} for this host.
+
+          Number of full inits in the last 24hrs: {ITEM.VALUE1}
+    - uuid: 0dc0963aa1074f93b54f48c7f9d83fe4
+      name: 'VDSL: Number of inits (Total)'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.10.94.1.1.6.1.6[index,ifDescr,"{$I_VDSL_ADSL_INTDESC}"]
+      key: vdsl.inits[total]
+      delay: '600'
+      history: 7d
+      units: inits
+      description: Total number of full DSL inits on {$I_VDSL_ADSL_INTDESC}.
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+    - uuid: dbcc0a514191463f8c55249da429594d
+      name: 'VDSL: interface operational status ($2)'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.2.2.1.8[index,ifDescr,"{$I_VDSL_ATM_INTDESC}"]
+      key: vdsl.int[status,ADSL]
+      delay: '60'
+      history: 7d
+      description: Monitors ADSL interface ({$I_VDSL_ATM_INTDESC}) state.
+      valuemap:
+        name: Interface Operational Status
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+      - tag: Application
+        value: VDSL::Status
+    - uuid: de38370512cb47aa8f9b4cc98f19d5b1
+      name: 'VDSL: interface operational status ($2)'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.2.2.1.8[index,ifDescr,"{$I_VDSL_ETH_INTDESC}"]
+      key: vdsl.int[status,VDSL]
+      delay: '60'
+      history: 7d
+      description: Monitors VDSL interface ({$I_VDSL_ETH_INTDESC}) state.
+      valuemap:
+        name: Interface Operational Status
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+      - tag: Application
+        value: VDSL::Status
+    - uuid: b153ff7cd3094fc4a582c7f894a132d5
+      name: 'VDSL: Blocks recieved ($1)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.2.2.1.10[index,ifDescr,"{$I_VDSL_ATM_INTDESC}"]
+      key: vdsl.rx[ADSL]
+      delay: '300'
+      history: 2d
+      description: The total number of received blocks on {$I_VDSL_ATM_INTDESC}.
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+      - tag: Application
+        value: VDSL::Usage
+    - uuid: 093eb10b4056402e90dda7b3f67a9def
+      name: 'VDSL: Blocks recieved ($1)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.2.2.1.10[index,ifDescr,"{$I_VDSL_ETH_INTDESC}"]
+      key: vdsl.rx[VDSL]
+      delay: '300'
+      history: 2d
+      description: The total number of received blocks on {$I_VDSL_ATM_INTDESC}.
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+      - tag: Application
+        value: VDSL::Usage
+    - uuid: 0ea87679d9ee4431833027096c5c94a6
+      name: 'VDSL: SNR margin (DS)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.94.1.1.3.1.4[index,ifDescr,"{$I_VDSL_ADSL_INTDESC}"]
+      key: vdsl.snr[DS]
+      delay: '300'
+      history: 7d
+      value_type: FLOAT
+      units: db
+      description: Noise Margin as seen by the ATU-R (CPE side) with respect to its
+        received signal in dB.
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.1'
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+      - tag: Application
+        value: VDSL::SNR
+    - uuid: 7770da60600740db93edc940d275e47a
+      name: 'VDSL: SNR margin (US)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.10.94.1.1.2.1.4[index,ifDescr,"{$I_VDSL_ADSL_INTDESC}"]
+      key: vdsl.snr[US]
+      delay: '300'
+      history: 7d
+      value_type: FLOAT
+      units: db
+      description: Noise Margin as seen by the ATU-C (ISP side) with respect to its
+        received signal in dB.
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.1'
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+      - tag: Application
+        value: VDSL::SNR
+    - uuid: e3f1120bd3e54068b6908040560514b2
+      name: 'VDSL: usage ($1; $2)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.31.1.1.1.6[index,ifDescr,"{$I_VDSL_ATM_INTDESC}"]
+      key: vdsl.usage[ADSL,down]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: bps
+      description: The the used downstream bandwidth on {$I_VDSL_ATM_INTDESC} in bits/s.
+      preprocessing:
+      - type: CHANGE_PER_SECOND
+        parameters:
+        - ''
+      - type: MULTIPLIER
+        parameters:
+        - '8'
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+      - tag: Application
+        value: VDSL::Usage
+    - uuid: 7cfd699dc24b4e7fa06525ca138e62f4
+      name: 'VDSL: usage ($1; $2)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.31.1.1.1.10[index,ifDescr,"{$I_VDSL_ATM_INTDESC}"]
+      key: vdsl.usage[ADSL,up]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: bps
+      description: The the used downstream bandwidth on {$I_VDSL_ATM_INTDESC} in bits/s.
+      preprocessing:
+      - type: CHANGE_PER_SECOND
+        parameters:
+        - ''
+      - type: MULTIPLIER
+        parameters:
+        - '8'
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+      - tag: Application
+        value: VDSL::Usage
+    - uuid: 9421c99b2a714696b70c12ef2982227f
+      name: 'VDSL: usage ($1; $2)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.31.1.1.1.6[index,ifDescr,"{$I_VDSL_ETH_INTDESC}"]
+      key: vdsl.usage[VDSL,down]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: bps
+      description: The the used downstream bandwidth on {$I_VDSL_ATM_INTDESC} in bits/s.
+      preprocessing:
+      - type: CHANGE_PER_SECOND
+        parameters:
+        - ''
+      - type: MULTIPLIER
+        parameters:
+        - '8'
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+      - tag: Application
+        value: VDSL::Usage
+    - uuid: 9fb37d63bb974b21b70e5f8ed8394225
+      name: 'VDSL: usage ($1; $2)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.31.1.1.1.10[index,ifDescr,"{$I_VDSL_ETH_INTDESC}"]
+      key: vdsl.usage[VDSL,up]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: bps
+      description: The the used downstream bandwidth on {$I_VDSL_ETH_INTDESC} in bits/s.
+      preprocessing:
+      - type: CHANGE_PER_SECOND
+        parameters:
+        - ''
+      - type: MULTIPLIER
+        parameters:
+        - '8'
+      tags:
+      - tag: Application
+        value: VDSL::Metrics
+      - tag: Application
+        value: VDSL::Usage
+    - uuid: 3fc8b67c7a9f4189b1b231ed3e7ff4f7
+      name: 'VDSL: Attainable Rate (DS) Threshold'
+      type: CALCULATED
+      key: VdslAttnRateThresh[DS]
+      delay: '600'
+      history: 1d
+      units: bps
+      params: '{$T_VDSL_RATE_THRESH_DS}*1000'
+      description: Low VDSL downstream channel threshold
+      tags:
+      - tag: Application
+        value: VDSL::Metadata
+    - uuid: fd6c0c4022c44ffeb32e29ae86217882
+      name: 'VDSL: Attainable Rate (US) Threshold'
+      type: CALCULATED
+      key: VdslAttnRateThresh[US]
+      delay: '600'
+      history: 1d
+      units: bps
+      params: '{$T_VDSL_RATE_THRESH_US}*1000'
+      description: Low VDSL upstream channel threshold
+      tags:
+      - tag: Application
+        value: VDSL::Metadata
+    - uuid: d7b4bb48ffbd45cfb08fdbaa645ddd57
+      name: 'VDSL: Attenuation (DS) Threshold'
+      type: CALCULATED
+      key: VdslAttnThresh[DS]
+      delay: '600'
+      history: 1d
+      value_type: FLOAT
+      units: db
+      params: '{$T_VDSL_ATTN_THRESH_DS}'
+      description: Upstream attenuation threshold
+      tags:
+      - tag: Application
+        value: VDSL::Metadata
+    - uuid: c17a0d852e1e42a6b61ac75ca7129be8
+      name: 'VDSL: Attenuation (US) Threshold'
+      type: CALCULATED
+      key: VdslAttnThresh[US]
+      delay: '600'
+      history: 1d
+      value_type: FLOAT
+      units: db
+      params: '{$T_VDSL_ATTN_THRESH_US}'
+      description: Upstream attenuation threshold
+      tags:
+      - tag: Application
+        value: VDSL::Metadata
+    - uuid: 6bc2e518789447ffb54081ca2b02e385
+      name: 'VDSL: Init threshold'
+      type: CALCULATED
+      key: VdslInitThresh
+      delay: '600'
+      history: 1d
+      units: inits
+      params: '{$T_VDSL_INIT_THRESH}'
+      description: The threshold for the maximum number of daily full inits.
+      tags:
+      - tag: Application
+        value: VDSL::Metadata
+    - uuid: 64c8652b44704bff8ff6f6dbc2e0374a
+      name: 'VDSL: SNR margin (DS) Threshold'
+      type: CALCULATED
+      key: VdslSnrmgnThresh[DS]
+      delay: '600'
+      history: 1d
+      value_type: FLOAT
+      units: db
+      params: '{$T_VDSL_SNRMGN_THRESH_DS}'
+      description: Signal to Noise Ratio margin downstream channel threshold
+      tags:
+      - tag: Application
+        value: VDSL::Metadata
+    - uuid: 2ce3e5dac2e8466d995b6f49395d2393
+      name: 'VDSL: SNR margin (US) Threshold'
+      type: CALCULATED
+      key: VdslSnrmgnThresh[US]
+      delay: '600'
+      history: 1d
+      value_type: FLOAT
+      units: db
+      params: '{$T_VDSL_SNRMGN_THRESH_US}'
+      description: Signal to Noise Ratio margin upstream channel threshold
+      tags:
+      - tag: Application
+        value: VDSL::Metadata
+    macros:
+    - macro: '{$I_VDSL_ADSL_INTDESC}'
+      value: ATM0-adsl
+    - macro: '{$I_VDSL_ATM_INTDESC}'
+      value: ATM0
+    - macro: '{$I_VDSL_ETH_INTDESC}'
+      value: Ethernet0
+    - macro: '{$I_VDSL_VDSL_INTDESC}'
+      value: Ethernet0-vdsl2
+    - macro: '{$I_VDSL_VDSL_INTINDEX}'
+      value: '15'
+    - macro: '{$T_VDSL_ATTN_THRESH_DS}'
+      value: '55'
+    - macro: '{$T_VDSL_ATTN_THRESH_US}'
+      value: '55'
+    - macro: '{$T_VDSL_INIT_THRESH}'
+      value: '5'
+    - macro: '{$T_VDSL_RATE_THRESH_DS}'
+      value: '2048'
+    - macro: '{$T_VDSL_RATE_THRESH_US}'
+      value: '256'
+    - macro: '{$T_VDSL_SNRMGN_THRESH_DS}'
+      value: '5'
+    - macro: '{$T_VDSL_SNRMGN_THRESH_US}'
+      value: '5'
+    valuemaps:
+    - uuid: 1d2e6ffafd454a33bd1bfd356809b19a
+      name: Interface Operational Status
+      mappings:
+      - value: '1'
+        newvalue: up
+      - value: '2'
+        newvalue: down
+      - value: '3'
+        newvalue: testing
+      - value: '4'
+        newvalue: unknown
+      - value: '5'
+        newvalue: dormant
+      - value: '6'
+        newvalue: not present
+      - value: '7'
+        newvalue: lower layer down
+    - uuid: 5d052a71c18a4f379d24284ca722c335
+      name: VDSL Attenuation
+      mappings:
+      - value: '0'
+        newvalue: N/A
+      - value: '21474836.46'
+        newvalue: N/A
+  triggers:
+  - uuid: e0f32214b8104a84a6c5314d51e36cc7
+    expression: (last(/VDSL Interface by SNMP/vdsl.atn.ds[atm])>{$T_VDSL_ATTN_THRESH_DS}
+      and last(/VDSL Interface by SNMP/vdsl.atn.ds[atm])<21474836.46) or (last(/VDSL
+      Interface by SNMP/vdsl.atn.ds[1])>{$T_VDSL_ATTN_THRESH_DS} and last(/VDSL Interface
+      by SNMP/vdsl.atn.ds[1])<21474836.46)
+    name: 'VDSL: Downstream attenuation is over {$T_VDSL_ATTN_THRESH_DS} db'
+    priority: WARNING
+    description: |
+      Attenuation on the primary upstream VDSL/ADSL channel is higher than {$T_VDSL_ATTN_THRESH_DS} db.
+
+      Current channel attenuation (a value of 0 indicates that the channel is not used):
+
+      ATM: {ITEM.VALUE1}
+      DS1: {ITEM.VALUE3}
+  - uuid: 9f42db8b916b4520b4b9f0e9c04f1a42
+    expression: (last(/VDSL Interface by SNMP/vdsl.atn.us[atm])>{$T_VDSL_ATTN_THRESH_US}
+      and last(/VDSL Interface by SNMP/vdsl.atn.us[atm])<21474836.46) or (last(/VDSL
+      Interface by SNMP/vdsl.atn.us[0])>{$T_VDSL_ATTN_THRESH_US} and last(/VDSL Interface
+      by SNMP/vdsl.atn.us[0])<21474836.46)
+    name: 'VDSL: Upstream attenuation is over {$T_VDSL_ATTN_THRESH_US} db'
+    priority: WARNING
+    description: |
+      Attenuation on the primary upstream VDSL/ADSL channel is higher than {$T_VDSL_ATTN_THRESH_US} db.
+
+      Current channel attenuations (a value of 0 indicates that the channel is not used):
+
+      ATM: {ITEM.VALUE1}
+      US0: {ITEM.VALUE3}
+  graphs:
+  - uuid: 4ff4ec8d8625467c81ca55dd86c391c7
+    name: 'VDSL: Attainable rates'
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: GRADIENT_LINE
+      color: 0000AA
+      calc_fnc: MAX
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.attnrate[DS]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: '009900'
+      calc_fnc: MAX
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.attnrate[US]
+    - sortorder: '2'
+      drawtype: DASHED_LINE
+      color: DDDD00
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: VdslAttnRateThresh[DS]
+    - sortorder: '3'
+      drawtype: DASHED_LINE
+      color: C80000
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: VdslAttnRateThresh[US]
+  - uuid: 4ef9d3d859dd4cb4beae3b6c4331607b
+    name: 'VDSL: Attenuation'
+    yaxismax: '120'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - color: EE00EE
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.atn.ds[atm]
+    - sortorder: '1'
+      color: 33FFFF
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.atn.ds[1]
+    - sortorder: '2'
+      color: 00EE00
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.atn.ds[2]
+    - sortorder: '3'
+      color: FF8040
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.atn.ds[3]
+    - sortorder: '4'
+      color: '660066'
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.atn.us[atm]
+    - sortorder: '5'
+      color: '000000'
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.atn.us[0]
+    - sortorder: '6'
+      color: '005555'
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.atn.us[1]
+    - sortorder: '7'
+      color: '005500'
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.atn.us[2]
+    - sortorder: '8'
+      color: '005500'
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.atn.us[3]
+    - sortorder: '9'
+      drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MAX
+      item:
+        host: VDSL Interface by SNMP
+        key: VdslAttnThresh[DS]
+    - sortorder: '10'
+      drawtype: DASHED_LINE
+      color: EEEE00
+      calc_fnc: MAX
+      item:
+        host: VDSL Interface by SNMP
+        key: VdslAttnThresh[US]
+  - uuid: 0bba51aeec4e4fdaaf6aa0e4034e7488
+    name: 'VDSL: Bandwidth Usage'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: GRADIENT_LINE
+      color: 00C800
+      calc_fnc: MAX
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.usage[ADSL,down]
+    - sortorder: '1'
+      drawtype: GRADIENT_LINE
+      color: 00C800
+      calc_fnc: MAX
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.usage[VDSL,down]
+    - sortorder: '2'
+      drawtype: BOLD_LINE
+      color: 0000BB
+      calc_fnc: MAX
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.usage[ADSL,up]
+    - sortorder: '3'
+      drawtype: BOLD_LINE
+      color: 0000BB
+      calc_fnc: MAX
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.usage[VDSL,up]
+    - sortorder: '4'
+      drawtype: DASHED_LINE
+      color: FFA500
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.attnrate[DS]
+    - sortorder: '5'
+      drawtype: DASHED_LINE
+      color: C80000
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.attnrate[US]
+  - uuid: a8ecf71a7534452ebd85784854381880
+    name: 'VDSL: Daily inits'
+    show_triggers: NO
+    graph_items:
+    - drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: VdslInitThresh
+    - sortorder: '1'
+      drawtype: GRADIENT_LINE
+      color: DDDD00
+      calc_fnc: MAX
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.inits[24hr]
+  - uuid: 444b800b767544fd9acdeee01bd1a5d7
+    name: 'VDSL: Signal to Noise Ratio margins'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: BOLD_LINE
+      color: 00C800
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.snr[US]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000CC
+      calc_fnc: MIN
+      item:
+        host: VDSL Interface by SNMP
+        key: vdsl.snr[DS]
+    - sortorder: '2'
+      drawtype: DASHED_LINE
+      color: AA0000
+      calc_fnc: MAX
+      item:
+        host: VDSL Interface by SNMP
+        key: VdslSnrmgnThresh[US]
+    - sortorder: '3'
+      drawtype: DASHED_LINE
+      color: DDDD00
+      calc_fnc: MAX
+      item:
+        host: VDSL Interface by SNMP
+        key: VdslSnrmgnThresh[DS]

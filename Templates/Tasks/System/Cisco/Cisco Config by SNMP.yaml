@@ -1,0 +1,90 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: ce925f2eb4b14bc2a13543a194e79013
+    name: Retigra/Tasks/System/Cisco
+  templates:
+  - uuid: 2903e735e78e4eebb69986840f7320cb
+    template: Cisco Config by SNMP
+    name: Cisco Config by SNMP
+    description: |
+      Monitors Cisco configuration management, set $T_CONFIG_TIME_UNSAVED to the threshold number of seconds before triggering.
+
+      To disable triggering altogether, set $T_CONFIG_TRIGGER to 0.
+    groups:
+    - name: Retigra/Tasks/System/Cisco
+    items:
+    - uuid: fafc804c7e844878b72591b725ba8a09
+      name: 'Config: Unsaved Time Threshold'
+      type: CALCULATED
+      key: config.is.unsaved
+      delay: '600'
+      history: 1d
+      params: '{$T_CONFIG_TIME_UNSAVED}'
+      description: The time to trigger on when a changed config is not saved
+      tags:
+      - tag: Application
+        value: Config::Metadata
+    - uuid: a099dc545f4f44b4915a027423f4bb4d
+      name: 'Config: Last change timestamp'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.9.9.43.1.1.1.0
+      key: config[lastchanged]
+      delay: '120'
+      history: 7d
+      units: s
+      description: |
+        The value of sysUpTime when the running configuration
+        was last changed.
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.01'
+      tags:
+      - tag: Application
+        value: Config::Metrics
+    - uuid: cd90ed3a7e8347fbbf77acd239b77d9c
+      name: 'Config: Last save timestamp'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.9.9.43.1.1.3.0
+      key: config[lastsaved]
+      delay: '120'
+      history: 7d
+      units: s
+      description: |
+        "The value of sysUpTime when the running configuration
+        was last saved (written).
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.01'
+      tags:
+      - tag: Application
+        value: Config::Metrics
+    - uuid: 98983cfd9d8f4f30a72142a5138bf3a8
+      name: 'Config: Diff between save and change timestamps'
+      type: CALCULATED
+      key: config[timediff]
+      delay: '600'
+      history: 7d
+      value_type: FLOAT
+      units: s
+      params: last(//config[lastchanged])-last(//config[lastsaved])
+      description: The difference between config[lastchange] and config[lastsave]
+        in seconds
+      tags:
+      - tag: Application
+        value: Config::Metrics
+      triggers:
+      - uuid: a5aef8583898462b9e2e3ba53fdc01d6
+        expression: min(/Cisco Config by SNMP/config[timediff],{$T_CONFIG_TIME_UNSAVED})>{$T_CONFIG_TIME_THRESH}
+          and {$T_CONFIG_TRIGGER}=1
+        name: 'Config: Has been changed and was not saved on {HOST.NAME}'
+        priority: WARNING
+    macros:
+    - macro: '{$T_CONFIG_TIME_THRESH}'
+      value: '60'
+    - macro: '{$T_CONFIG_TIME_UNSAVED}'
+      value: '3600'
+    - macro: '{$T_CONFIG_TRIGGER}'
+      value: '1'

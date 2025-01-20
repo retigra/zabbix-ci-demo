@@ -1,0 +1,565 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 73c76d84854c4a419862c1986d0d8a97
+    name: Retigra/Tasks/Apps/Mon
+  templates:
+  - uuid: 96909cd8441840468d6f01b10cfbdbd3
+    template: Zabbix Server Performance
+    name: Zabbix Server Performance
+    description: Monitors Zabbix server performance metrics
+    groups:
+    - name: Retigra/Tasks/Apps/Mon
+    items:
+    - uuid: c8470b573abe424f8cbc27b6cf37dbab
+      name: 'Zabbix: alerter process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,alerter,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix alerter process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 9449b6e8a53f4ff59a37d3c8bde3c10d
+        expression: min(/Zabbix Server 
+          Performance/zabbix[process,alerter,avg,busy],{$T_ZABBIX_PERF_TIME:"alerter"})>{$T_ZABBIX_PERF_PERCTHRESH:"alerter"}
+        name: 'Zabbix: Alerter process is more than {$T_ZABBIX_PERF_PERCTHRESH:"alerter"}%
+          busy'
+        priority: AVERAGE
+    - uuid: c3cebccfb65347d18836d09a204a090a
+      name: 'Zabbix: config sync process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,configuration syncer,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix config sync
+        process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 65fe6a28c94040ad85a09cab470be562
+        expression: min(/Zabbix Server Performance/zabbix[process,configuration 
+          syncer,avg,busy],{$T_ZABBIX_PERF_TIME:"configsync"})>{$T_ZABBIX_PERF_PERCTHRESH:"configsync"}
+        name: 'Zabbix: Config sync process is more than {$T_ZABBIX_PERF_PERCTHRESH:"configsync"}%
+          busy'
+        priority: AVERAGE
+    - uuid: 58206284826d4599a37cbae3d4252e38
+      name: 'Zabbix: db watchdog process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,db watchdog,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix db watchdog
+        process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 7ddedb13895d4ec2af7d8b9ec9a40d12
+        expression: min(/Zabbix Server Performance/zabbix[process,db 
+          watchdog,avg,busy],{$T_ZABBIX_PERF_TIME:"dbwatchdog"})>{$T_ZABBIX_PERF_PERCTHRESH:"dbwatchdog"}
+        name: 'Zabbix: DB watchdog process is more than {$T_ZABBIX_PERF_PERCTHRESH:"dbwatchdog"}%
+          busy'
+        priority: AVERAGE
+    - uuid: d5fe66039b134415a8c671616520eda4
+      name: 'Zabbix: discoverer process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,discoverer,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix discoverer process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: dc5f8a939ef2487f8b8dd5ed43d4c310
+        expression: min(/Zabbix Server 
+          Performance/zabbix[process,discoverer,avg,busy],{$T_ZABBIX_PERF_TIME:"discoverer"})>{$T_ZABBIX_PERF_PERCTHRESH:"discoverer"}
+        name: 'Zabbix: Discoverer process is more than {$T_ZABBIX_PERF_PERCTHRESH:"discoverer"}%
+          busy'
+        priority: AVERAGE
+    - uuid: ced8fbe5617e4309a303d50183cb2c0e
+      name: 'Zabbix: escalator process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,escalator,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix escalator process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 80ec88b95e0c44798a9cb51944081d58
+        expression: min(/Zabbix Server 
+          Performance/zabbix[process,escalator,avg,busy],{$T_ZABBIX_PERF_TIME:"escalator"})>{$T_ZABBIX_PERF_PERCTHRESH:"escalator"}
+        name: 'Zabbix: Escalator process is more than {$T_ZABBIX_PERF_PERCTHRESH:"escalator"}%
+          busy'
+        priority: AVERAGE
+    - uuid: 3550b063a6b6456f8e99d5a6402df353
+      name: 'Zabbix: history sync process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,history syncer,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix history sync
+        process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 8152dd6591284c6a9a57a25040ea0833
+        expression: min(/Zabbix Server Performance/zabbix[process,history 
+          syncer,avg,busy],{$T_ZABBIX_PERF_TIME:"histsync"})>{$T_ZABBIX_PERF_PERCTHRESH:"histsync"}
+        name: 'Zabbix: History sync process is more than {$T_ZABBIX_PERF_PERCTHRESH:"histsync"}%
+          busy'
+        priority: AVERAGE
+    - uuid: f260257904e24d36ae24b75b237f8bc8
+      name: 'Zabbix: housekeeper process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,housekeeper,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix housekeeper
+        process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: c167796410c3436a9f736d945b9e3cbe
+        expression: min(/Zabbix Server 
+          Performance/zabbix[process,housekeeper,avg,busy],{$T_ZABBIX_PERF_TIME:"housekeeper"})>{$T_ZABBIX_PERF_PERCTHRESH:"housekeeper"}
+        name: 'Zabbix: Housekeeper process is more than {$T_ZABBIX_PERF_PERCTHRESH:"housekeeper"}%
+          busy'
+        priority: AVERAGE
+    - uuid: 0fdadd5ca49947d89f10b0af9f06834c
+      name: 'Zabbix: http poller process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,http poller,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix http poller
+        process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 4b515dbdda1940c1884eaba0da44ceac
+        expression: min(/Zabbix Server Performance/zabbix[process,http 
+          poller,avg,busy],{$T_ZABBIX_PERF_TIME:"httppoller"})>{$T_ZABBIX_PERF_PERCTHRESH:"httppoller"}
+        name: 'Zabbix: HTTP poller process is more than {$T_ZABBIX_PERF_PERCTHRESH:"httppoller"}%
+          busy'
+        priority: AVERAGE
+    - uuid: 37d88dd775454973986e27d2e80985cf
+      name: 'Zabbix: icmp pinger process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,icmp pinger,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix icmp pinger
+        process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: c63a14e1e3be423bb80638b391e7a2de
+        expression: min(/Zabbix Server Performance/zabbix[process,icmp 
+          pinger,avg,busy],{$T_ZABBIX_PERF_TIME:"icmpping"})>{$T_ZABBIX_PERF_PERCTHRESH:"icmpping"}
+        name: 'Zabbix: ICMP Pinger process is more than {$T_ZABBIX_PERF_PERCTHRESH:"icmpping"}%
+          busy'
+        priority: AVERAGE
+    - uuid: 291eccab8efb462f879b721f1f760b4b
+      name: 'Zabbix: ipmi poller process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,ipmi poller,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      status: DISABLED
+      units: '%'
+      description: One minute average of the time spent on the Zabbix ipmi poller
+        process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 69cdbfc49c4a46ccadcfe8fcb6f992dd
+        expression: min(/Zabbix Server Performance/zabbix[process,ipmi 
+          poller,avg,busy],{$T_ZABBIX_PERF_TIME:"ipmipoller"})>{$T_ZABBIX_PERF_PERCTHRESH:"ipmipoller"}
+        name: 'Zabbix: IPMI poller process is more than {$T_ZABBIX_PERF_PERCTHRESH:"ipmipoller"}%
+          busy'
+        priority: AVERAGE
+    - uuid: 3d3c6c0fc972430c9f6c63f7458df754
+      name: 'Zabbix: java poller process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,java poller,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      status: DISABLED
+      units: '%'
+      description: One minute average of the time spent on the Zabbix Java poller
+        process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 3ad731d64bdc49e8a698998efb979cb1
+        expression: min(/Zabbix Server Performance/zabbix[process,java 
+          poller,avg,busy],{$T_ZABBIX_PERF_TIME:"javapoller"})>{$T_ZABBIX_PERF_PERCTHRESH:"javapoller"}
+        name: 'Zabbix: Java poller process is more than {$T_ZABBIX_PERF_PERCTHRESH:"javapoller"}%
+          busy'
+        priority: AVERAGE
+    - uuid: d241b56b52894a0db34da682969bc91c
+      name: 'Zabbix: poller process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,poller,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix poller process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 884ed76a23d6427c9c94fa3ceb3cc6a4
+        expression: min(/Zabbix Server 
+          Performance/zabbix[process,poller,avg,busy],{$T_ZABBIX_PERF_TIME:"poller"})>{$T_ZABBIX_PERF_PERCTHRESH:"poller"}
+        name: 'Zabbix: Poller process is more than {$T_ZABBIX_PERF_PERCTHRESH:"poller"}%
+          busy'
+        priority: AVERAGE
+    - uuid: b1e86115ce924c8eb874c5c211794e3c
+      name: 'Zabbix: proxy poller process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,proxy poller,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix proxy poller
+        process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 7666a87259a34b83892f9125f8f40d46
+        expression: min(/Zabbix Server Performance/zabbix[process,proxy 
+          poller,avg,busy],{$T_ZABBIX_PERF_TIME:"proxypoller"})>{$T_ZABBIX_PERF_PERCTHRESH:"proxypoller"}
+        name: 'Zabbix: Proxy poller process is more than {$T_ZABBIX_PERF_PERCTHRESH:"proxypoller"}%
+          busy'
+        priority: AVERAGE
+    - uuid: 915af5bdd3f44ee8bec87e736077e2f2
+      name: 'Zabbix: self-monitoring process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,self-monitoring,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix self-monitoring
+        process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: a1eac247c8c4438187c0e01083e25b55
+        expression: min(/Zabbix Server 
+          Performance/zabbix[process,self-monitoring,avg,busy],{$T_ZABBIX_PERF_TIME:"selfmonitoring"})>{$T_ZABBIX_PERF_PERCTHRESH:"selfmonitoring"}
+        name: 'Zabbix: Self monitoring process is more than {$T_ZABBIX_PERF_PERCTHRESH:"selfmonitoring"}%
+          busy'
+        priority: AVERAGE
+    - uuid: 8c5c4774375f45fb815f1e12a7e813f6
+      name: 'Zabbix: snmp trapper process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,snmp trapper,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      status: DISABLED
+      units: '%'
+      description: One minute average of the time spent on the Zabbix snmp trapper
+        process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: f331816d08c048f4b23e7234ef2e0ec6
+        expression: min(/Zabbix Server Performance/zabbix[process,snmp 
+          trapper,avg,busy],{$T_ZABBIX_PERF_TIME:"snmptrapper"})>{$T_ZABBIX_PERF_PERCTHRESH:"snmptrapper"}
+        name: 'Zabbix: SNMP trapper process is more than {$T_ZABBIX_PERF_PERCTHRESH:"snmptrapper"}%
+          busy'
+        priority: AVERAGE
+    - uuid: 3c7b847ce3ce45abaccd05fcf8f9e1ef
+      name: 'Zabbix: timer process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,timer,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix timer process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+    - uuid: 599c50244dc3451aa2394e823361bf3f
+      name: 'Zabbix: trapper process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,trapper,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix trapper process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: aba9e2ea50194c6995dd79449af0724c
+        expression: min(/Zabbix Server 
+          Performance/zabbix[process,trapper,avg,busy],{$T_ZABBIX_PERF_TIME:"trapper"})>{$T_ZABBIX_PERF_PERCTHRESH:"trapper"}
+        name: 'Zabbix: Trapper process is more than {$T_ZABBIX_PERF_PERCTHRESH:"trapper"}%
+          busy'
+        priority: AVERAGE
+    - uuid: 72bf7fdc72ea40fb91920f34e11c53b0
+      name: 'Zabbix: unreachable poller process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,unreachable poller,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: One minute average of the time spent on the Zabbix unreachable
+        poller process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: e2c2ab1699814688bb0c1be8091d3921
+        expression: min(/Zabbix Server Performance/zabbix[process,unreachable 
+          poller,avg,busy],{$T_ZABBIX_PERF_TIME:"unreachable"})>{$T_ZABBIX_PERF_PERCTHRESH:"unreachable"}
+        name: 'Zabbix: Unreachable poller process is more than {$T_ZABBIX_PERF_PERCTHRESH:"unreachable"}%
+          busy'
+        priority: AVERAGE
+    - uuid: ba7856b56e4d4ea9b3115404ae2aa263
+      name: 'Zabbix: vmware collector process time (avg; %)'
+      type: INTERNAL
+      key: zabbix[process,vmware collector,avg,busy]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      status: DISABLED
+      units: '%'
+      description: One minute average of the time spent on the Zabbix vmware collector
+        process.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: eb01bc88a3854c42818ffdd04296752b
+        expression: min(/Zabbix Server Performance/zabbix[process,vmware 
+          collector,avg,busy],{$T_ZABBIX_PERF_TIME:"vmpoller"})>{$T_ZABBIX_PERF_PERCTHRESH:"vmpoller"}
+        name: 'Zabbix: VMWare poller process is more than {$T_ZABBIX_PERF_PERCTHRESH:"vmpoller"}%
+          busy'
+        priority: AVERAGE
+    - uuid: bfcf5dab656e4af491eab97f024ba163
+      name: 'Zabbix: Values per second (required)'
+      type: INTERNAL
+      key: zabbix[requiredperformance]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: vps
+      description: Required performance of the Zabbix server or Zabbix proxy, in new
+        values per second expected.
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+    - uuid: 405195dee64a425ba8f238f203962db2
+      name: 'Zabbix: Values per second (supported)'
+      type: INTERNAL
+      key: zabbix[wcache,values,all]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: vps
+      description: Number of values per second processed by Zabbix server, except
+        any unsupported items.
+      preprocessing:
+      - type: CHANGE_PER_SECOND
+        parameters:
+        - ''
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+    - uuid: a04e8029e9f74c52a535031ff71f2dc6
+      name: 'Zabbix: Values per second (not supported)'
+      type: INTERNAL
+      key: zabbix[wcache,values,not supported]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: vps
+      description: Number of items per second resulting in item becoming unsupported
+        or keeping that state.
+      preprocessing:
+      - type: CHANGE_PER_SECOND
+        parameters:
+        - ''
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+    macros:
+    - macro: '{$T_ZABBIX_PERF_PERCTHRESH}'
+      value: '80'
+    - macro: '{$T_ZABBIX_PERF_TIME}'
+      value: '900'
+    - macro: '{$T_ZABBIX_PERF_TIME:"housekeeper"}'
+      value: '3600'
+  graphs:
+  - uuid: c2fa1073f9624f02a73e8581c7d83a19
+    name: 'Zabbix: Collector processes (time, %)'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - color: 1A7C11
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,http poller,avg,busy]
+    - sortorder: '1'
+      color: F63100
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,icmp pinger,avg,busy]
+    - sortorder: '2'
+      color: 2774A4
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,ipmi poller,avg,busy]
+    - sortorder: '3'
+      color: A54F10
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,java poller,avg,busy]
+    - sortorder: '4'
+      color: FC6EA3
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,proxy poller,avg,busy]
+    - sortorder: '5'
+      color: 6C59DC
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,snmp trapper,avg,busy]
+    - sortorder: '6'
+      color: AC8C14
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,timer,avg,busy]
+    - sortorder: '7'
+      color: 611F27
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,trapper,avg,busy]
+    - sortorder: '8'
+      color: F230E0
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,unreachable poller,avg,busy]
+    - sortorder: '9'
+      color: 5CCD18
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,vmware collector,avg,busy]
+    - sortorder: '10'
+      color: BB2A02
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,poller,avg,busy]
+    - sortorder: '11'
+      color: 5A2B57
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,self-monitoring,avg,busy]
+  - uuid: 218f37ebd01742d59aa71f605c916a73
+    name: 'Zabbix: Internal processes (time, %)'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - color: 1A7C11
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,alerter,avg,busy]
+    - sortorder: '1'
+      color: F63100
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,configuration syncer,avg,busy]
+    - sortorder: '2'
+      color: 2774A4
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,db watchdog,avg,busy]
+    - sortorder: '3'
+      color: A54F10
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,discoverer,avg,busy]
+    - sortorder: '4'
+      color: FC6EA3
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,escalator,avg,busy]
+    - sortorder: '5'
+      color: 6C59DC
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,history syncer,avg,busy]
+    - sortorder: '6'
+      color: AC8C14
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[process,housekeeper,avg,busy]
+  - uuid: 243ff6cf27044e0da99ad7aa48fb68a8
+    name: 'Zabbix: Values per second'
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: GRADIENT_LINE
+      color: 1A7C11
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[wcache,values,all]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: F63100
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[wcache,values,not supported]
+    - sortorder: '2'
+      drawtype: DASHED_LINE
+      color: 2774A4
+      item:
+        host: Zabbix Server Performance
+        key: zabbix[requiredperformance]

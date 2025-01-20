@@ -1,0 +1,137 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 04989fa90e2e42f89a995992f0e3e7af
+    name: Retigra/Tasks/Aggregation
+  templates:
+  - uuid: 68282fe6b159463d8eab7d1ae8d5230f
+    template: t_task_aggregation_cellular
+    name: Template::Task::Aggregation::Cellular
+    description: Aggregates cellular statistics.
+    groups:
+    - name: Retigra/Tasks/Aggregation
+    items:
+    - uuid: 4bf268418f9b40e89ab32fea99c1f696
+      name: 'Aggr: Cellular data bundle size  in {$I_AGGR_GROUPNAME} (B)'
+      type: CALCULATED
+      key: CellDataBundleSize
+      delay: '600'
+      history: 7d
+      units: Bytes
+      params: '{$T_CELL_BUNDLE_G}*1000000000'
+      description: Total pre-agreed data bundle size.
+      tags:
+      - tag: Application
+        value: Aggregates::Metrics
+    - uuid: 8867e0f6ca4448f7b7b53ef498db66ef
+      name: 'Aggr: Average cellular RSSI of hosts in {$I_AGGR_GROUPNAME}'
+      type: CALCULATED
+      key: grpavg["{$I_AGGR_GROUPNAME}","cell.rssi[avg]",last]
+      delay: '14400'
+      history: 1d
+      value_type: FLOAT
+      units: db
+      params: avg(last_foreach(/*/cell.rssi[avg]?[group="{$I_AGGR_GROUPNAME}"]))
+      description: Counts the average cellular RSSI for hostgroup  {$I_AGGR_GROUPNAME}.
+      tags:
+      - tag: Application
+        value: Aggregates::Metrics
+    - uuid: 49a60960fd944cadbb3cd03353ab8d1b
+      name: 'Aggr: Total monthly cellular usage of hosts in {$I_AGGR_GROUPNAME}'
+      type: CALCULATED
+      key: grpsum["{$I_AGGR_GROUPNAME}","cell.int.usage[monthly]",last]
+      delay: '900'
+      history: 7d
+      units: Bytes
+      params: sum(last_foreach(/*/cell.int.usage[monthly]?[group="{$I_AGGR_GROUPNAME}"]))
+      description: Counts the aggregate cellular interface usage for hostgroup  {$I_AGGR_GROUPNAME}.
+      tags:
+      - tag: Application
+        value: Aggregates::Metrics
+    macros:
+    - macro: '{$I_AGGR_GROUPNAME}'
+      value: None
+    - macro: '{$M_CELL_AGGRNAME}'
+      value: '{$I_AGGR_GROUPNAME}'
+    - macro: '{$T_CELL_BUNDLE_G}'
+      value: '100'
+    - macro: '{$T_CELL_THRESH_CRITICAL}'
+      value: '100'
+    - macro: '{$T_CELL_THRESH_HIGH}'
+      value: '90'
+    - macro: '{$T_CELL_THRESH_LOW}'
+      value: '50'
+    - macro: '{$T_CELL_THRESH_MEDIUM}'
+      value: '75'
+    - macro: '{$T_CELL_TRIGGER}'
+      value: '1'
+  triggers:
+  - uuid: d1109f6b631e486f8142a1d5f7cb98a6
+    expression: |
+      last(/t_task_aggregation_cellular/grpsum["{$I_AGGR_GROUPNAME}","cell.int.usage[monthly]",last])
+      / last(/t_task_aggregation_cellular/CellDataBundleSize) *100 >= {$T_CELL_THRESH_CRITICAL}  and {$T_CELL_TRIGGER}=1
+    name: 'Aggr: Cellular data usage is over {$T_CELL_THRESH_CRITICAL}%'
+    priority: DISASTER
+    description: |
+      The data usage of the cellular devices in hostgroup {$I_AGGR_GROUPNAME} is over {$T_CELL_THRESH_CRITICAL}%.
+
+      Total bundle size: {ITEM.LASTVALUE2}
+      Used cellular date:  {ITEM.LASTVALUE1}
+  - uuid: be7a6ef2c48c4ec4a95068b3ab67dfe6
+    expression: |
+      last(/t_task_aggregation_cellular/grpsum["{$I_AGGR_GROUPNAME}","cell.int.usage[monthly]",last])
+      / last(/t_task_aggregation_cellular/CellDataBundleSize) *100 >= {$T_CELL_THRESH_HIGH}  and {$T_CELL_TRIGGER}=1
+    name: 'Aggr: Cellular data usage is over {$T_CELL_THRESH_HIGH}%'
+    priority: HIGH
+    description: |
+      The data usage of the cellular devices in hostgroup {$I_AGGR_GROUPNAME} is over {$T_CELL_THRESH_HIGH}%.
+
+      Total bundle size: {ITEM.LASTVALUE2}
+      Used cellular date:  {ITEM.LASTVALUE1}
+    dependencies:
+    - name: 'Aggr: Cellular data usage is over {$T_CELL_THRESH_CRITICAL}%'
+      expression: |
+        last(/t_task_aggregation_cellular/grpsum["{$I_AGGR_GROUPNAME}","cell.int.usage[monthly]",last])
+        / last(/t_task_aggregation_cellular/CellDataBundleSize) *100 >= {$T_CELL_THRESH_CRITICAL}  and {$T_CELL_TRIGGER}=1
+  - uuid: 69c50e2efa954829afc8aa66dad292d2
+    expression: |
+      last(/t_task_aggregation_cellular/grpsum["{$I_AGGR_GROUPNAME}","cell.int.usage[monthly]",last])
+      / last(/t_task_aggregation_cellular/CellDataBundleSize) *100 >= {$T_CELL_THRESH_LOW} and {$T_CELL_TRIGGER}=1
+    name: 'Aggr: Cellular data usage is over {$T_CELL_THRESH_LOW}%'
+    priority: WARNING
+    description: |
+      The data usage of the cellular devices in hostgroup {$I_AGGR_GROUPNAME} is over {$T_CELL_THRESH_LOW}%.
+
+      Total bundle size: {ITEM.LASTVALUE2}
+      Used cellular date:  {ITEM.LASTVALUE1}
+    dependencies:
+    - name: 'Aggr: Cellular data usage is over {$T_CELL_THRESH_MEDIUM}%'
+      expression: |
+        last(/t_task_aggregation_cellular/grpsum["{$I_AGGR_GROUPNAME}","cell.int.usage[monthly]",last])
+        / last(/t_task_aggregation_cellular/CellDataBundleSize) *100 >= {$T_CELL_THRESH_MEDIUM}  and {$T_CELL_TRIGGER}=1
+  - uuid: 364dc90c7327484b91882e350a4daf04
+    expression: |
+      last(/t_task_aggregation_cellular/grpsum["{$I_AGGR_GROUPNAME}","cell.int.usage[monthly]",last])
+      / last(/t_task_aggregation_cellular/CellDataBundleSize) *100 >= {$T_CELL_THRESH_MEDIUM}  and {$T_CELL_TRIGGER}=1
+    name: 'Aggr: Cellular data usage is over {$T_CELL_THRESH_MEDIUM}%'
+    priority: AVERAGE
+    description: |
+      The data usage of the cellular devices in hostgroup {$I_AGGR_GROUPNAME} is over {$T_CELL_THRESH_MEDIUM}%.
+
+      Total bundle size: {ITEM.LASTVALUE2}
+      Used cellular date:  {ITEM.LASTVALUE1}
+    dependencies:
+    - name: 'Aggr: Cellular data usage is over {$T_CELL_THRESH_HIGH}%'
+      expression: |
+        last(/t_task_aggregation_cellular/grpsum["{$I_AGGR_GROUPNAME}","cell.int.usage[monthly]",last])
+        / last(/t_task_aggregation_cellular/CellDataBundleSize) *100 >= {$T_CELL_THRESH_HIGH}  and {$T_CELL_TRIGGER}=1
+  graphs:
+  - uuid: 7db9ba72128347869a30c9635cc4bb2f
+    name: 'Cellular: Data usage'
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: '770077'
+      calc_fnc: MAX
+      item:
+        host: t_task_aggregation_cellular
+        key: grpsum["{$I_AGGR_GROUPNAME}","cell.int.usage[monthly]",last]

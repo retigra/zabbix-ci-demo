@@ -1,0 +1,38 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 04989fa90e2e42f89a995992f0e3e7af
+    name: Retigra/Tasks/Aggregation
+  templates:
+  - uuid: 06b6ac9f82c0455a80f1adad1167c729
+    template: t_task_aggregation_host_include
+    name: Template::Task::Aggregation::Host_Include
+    description: By applying this template to a host, it will be included in the total
+      host count for the group. Set $M_AGGR_INCLUDE to 0 to disable count inclusion.
+    groups:
+    - name: Retigra/Tasks/Aggregation
+    items:
+    - uuid: 9cb7ddd0239745f98963e78b6e3f348b
+      name: 'Aggr: Count this host'
+      type: CALCULATED
+      key: aggr.count
+      delay: '300'
+      history: 2d
+      params: '{$M_AGGR_INCLUDE}'
+      description: Defines if the host is counted in the total host count for aggregates.
+      valuemap:
+        name: True/False
+      tags:
+      - tag: Application
+        value: 'Aggr: Metadata'
+    macros:
+    - macro: '{$M_AGGR_INCLUDE}'
+      value: '1'
+    valuemaps:
+    - uuid: a501cb7983bb49a4a502476fc25b2713
+      name: True/False
+      mappings:
+      - value: '0'
+        newvalue: 'False'
+      - value: '1'
+        newvalue: 'True'

@@ -1,0 +1,123 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: c447e6b6bb4a47c8a6c70dff390108c9
+    name: Retigra/Tasks/Services
+  templates:
+  - uuid: daea081f78e046c9949076bc60f0c0d7
+    template: t_task_service_ldap
+    name: Template::Task::Service::LDAP
+    groups:
+    - name: Retigra/Tasks/Services
+    items:
+    - uuid: 252dfa4e49164412b8f0605c9cc78df0
+      name: 'LDAP: response time threshold'
+      type: CALCULATED
+      key: LdapPerfThresh[{$T_LDAP_PERF_THRESH}]
+      delay: '300'
+      history: 1d
+      value_type: FLOAT
+      units: s
+      params: '{$T_LDAP_PERF_THRESH}'
+      description: Holds the currently configured LDAP response time threshold used
+        in triggers.
+      tags:
+      - tag: Application
+        value: LDAP::Metadata
+    - uuid: 65b0d756ffda4c369afcf0d7ff130189
+      name: 'LDAP: service performance'
+      type: SIMPLE
+      key: net.tcp.service.perf[ldap,{HOST.CONN},{$I_LDAP_PORT}]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: Checks LDAP service performance by timing the creation of a LDAP
+        session on port {$I_LDAP_PORT} .
+      tags:
+      - tag: Application
+        value: LDAP::Metrics
+    - uuid: 583525595cb74a38adf91531241d1a49
+      name: 'LDAP: service state'
+      type: SIMPLE
+      key: net.tcp.service[ldap,{HOST.CONN},{$I_LDAP_PORT}]
+      delay: '60'
+      history: 7d
+      description: Opens a connection to port {$I_LDAP_PORT} on an LDAP server and
+        performs an LDAP search operation with filter set to (objectClass=*). Expects
+        successful retrieval of the first attribute of the first entry.
+      valuemap:
+        name: Service state
+      tags:
+      - tag: Application
+        value: LDAP::Metrics
+      triggers:
+      - uuid: b2c38a8ee5ea41ad904fab453346c721
+        expression: 
+          max(/t_task_service_ldap/net.tcp.service[ldap,{HOST.CONN},{$I_LDAP_PORT}],{$T_LDAP_STATE_TIME})=0
+        name: 'LDAP: Service is down on {HOST.NAME}'
+        priority: AVERAGE
+        description: |
+          The LDAP service on port {$I_LDAP_PORT} is not responding or is returning an invalid response.
+          This could be caused by a firewall blocking the traffic, or a LDAP service malfunction.
+      - uuid: 1ac31140a8744e22b60574295111f005
+        expression: 
+          avg(/t_task_service_ldap/net.tcp.service[ldap,{HOST.CONN},{$I_LDAP_PORT}],{$T_LDAP_PERF_TIME})>{$T_LDAP_PERF_THRESH}
+        name: 'LDAP: Service response time is too high on {HOST.NAME}'
+        priority: WARNING
+        description: |
+          The LDAP service on port {$I_LDAP_PORT} is responding too slowly to new connection attempts.
+          This could be due to high link congestion, high system load or a great distance to the host.
+        dependencies:
+        - name: 'LDAP: Service is down on {HOST.NAME}'
+          expression: 
+            max(/t_task_service_ldap/net.tcp.service[ldap,{HOST.CONN},{$I_LDAP_PORT}],{$T_LDAP_STATE_TIME})=0
+    macros:
+    - macro: '{$I_LDAP_PORT}'
+      value: '389'
+    - macro: '{$T_LDAP_PERF_THRESH}'
+      value: '1'
+    - macro: '{$T_LDAP_PERF_TIME}'
+      value: 5m
+    - macro: '{$T_LDAP_STATE_TIME}'
+      value: '#3'
+    valuemaps:
+    - uuid: 8308537bef914d0d9c0777af95d2aed8
+      name: Service state
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+  graphs:
+  - uuid: eacf6a70da81487dbe3714c3f03e910d
+    name: 'LDAP: Performance'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MIN
+      item:
+        host: t_task_service_ldap
+        key: LdapPerfThresh[{$T_LDAP_PERF_THRESH}]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000CC
+      item:
+        host: t_task_service_ldap
+        key: net.tcp.service.perf[ldap,{HOST.CONN},{$I_LDAP_PORT}]
+  - uuid: 1ef6369a6d714973a4be29e5e5b310df
+    name: 'LDAP: Service state (1=Up, 0=Down)'
+    yaxismax: '1'
+    show_triggers: NO
+    percent_left: '95'
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 1A7C11
+      calc_fnc: MIN
+      item:
+        host: t_task_service_ldap
+        key: net.tcp.service[ldap,{HOST.CONN},{$I_LDAP_PORT}]

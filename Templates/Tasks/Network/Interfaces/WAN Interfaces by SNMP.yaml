@@ -1,0 +1,199 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 17dc7db2fd4542ca9d7c3f46e40baf97
+    name: Retigra/Tasks/Network/Interfaces
+  templates:
+  - uuid: 0829a60e7a6f44f888fb8be1d9d7d3e8
+    template: WAN Interfaces by SNMP
+    name: WAN Interfaces by SNMP
+    description: |
+      Monitors an ethernet based WAN network connection on a CPE device. Set the following macro to specify the used interface:
+
+      $I_WAN_INT
+    groups:
+    - name: Retigra/Tasks/Network/Interfaces
+    items:
+    - uuid: e5b9b0cc029649c5a638c17fe16d9ee5
+      name: 'WAN: blocks recieved'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.31.1.1.1.6[index,ifDescr,"{$I_WAN_INT}"]
+      key: wan.int.blocks[RX]
+      delay: '300'
+      history: 2d
+      description: The total number of sent blocks on {$I_WAN_INT}.
+      tags:
+      - tag: Application
+        value: Fiber::Metrics
+      - tag: Application
+        value: Fiber::Usage
+    - uuid: 0d2d39393a394aa69ea0a57606717904
+      name: 'WAN: blocks sent'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.31.1.1.1.10[index,ifDescr,"{$I_WAN_INT}"]
+      key: wan.int.blocks[TX]
+      delay: '300'
+      history: 2d
+      description: The total number of sent blocks on {$I_WAN_INT}.
+      tags:
+      - tag: Application
+        value: Fiber::Metrics
+      - tag: Application
+        value: Fiber::Usage
+    - uuid: 8b3c1d93c0a3416d8de39f7aff34774d
+      name: 'WAN: errors received'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.2.2.1.14[index,ifDescr,"{$I_WAN_INT}"]
+      key: wan.int.err[RX]
+      delay: '300'
+      history: 2d
+      description: The total number of RX error blocks on {$I_WAN_INT}.
+      tags:
+      - tag: Application
+        value: Fiber::Metrics
+      - tag: Application
+        value: Fiber::Usage
+    - uuid: 65d993aa8bd8431d94572c11662de57d
+      name: 'WAN: errors sent'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.2.2.1.20[index,ifDescr,"{$I_WAN_INT}"]
+      key: wan.int.err[TX]
+      delay: '300'
+      history: 2d
+      description: The total number of TX error blocks on {$I_WAN_INT}.
+      tags:
+      - tag: Application
+        value: Fiber::Metrics
+      - tag: Application
+        value: Fiber::Usage
+    - uuid: c6cdf09edb944fd59283412932730939
+      name: 'WAN: usage ($1)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.31.1.1.1.6[index,ifDescr,"{$I_WAN_INT}"]
+      key: wan.int.usage[down]
+      delay: '60'
+      history: 7d
+      units: bps
+      description: Monitors the incoming transfer rate of the WAN connected interface.
+      preprocessing:
+      - type: CHANGE_PER_SECOND
+        parameters:
+        - ''
+      - type: MULTIPLIER
+        parameters:
+        - '8'
+      tags:
+      - tag: Application
+        value: Fiber::Metrics
+      - tag: Application
+        value: Fiber::Usage
+    - uuid: 6cf2f1cddf884411921db5b74c50c45d
+      name: 'WAN: usage ($1)'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.2.1.31.1.1.1.10[index,ifDescr,"{$I_WAN_INT}"]
+      key: wan.int.usage[up]
+      delay: '60'
+      history: 7d
+      units: bps
+      description: Monitors the outgoing transfer rate of the WAN connected device.
+      preprocessing:
+      - type: CHANGE_PER_SECOND
+        parameters:
+        - ''
+      - type: MULTIPLIER
+        parameters:
+        - '8'
+      tags:
+      - tag: Application
+        value: Fiber::Metrics
+      - tag: Application
+        value: Fiber::Usage
+    - uuid: 5e99b5d59dcd418da71a8a952b404e2c
+      name: 'WAN: interface operational status'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.2.2.1.8[index,.1.3.6.1.2.1.2.2.1.2,"{$I_WAN_INT}"]
+      key: wan.int[status]
+      delay: '60'
+      history: 7d
+      description: Monitors WAN interface state.
+      valuemap:
+        name: Interface Operational Status
+      tags:
+      - tag: Application
+        value: Fiber::Metrics
+      - tag: Application
+        value: Fiber::Status
+    - uuid: 2d42e6df8a694a7cbd35030e3b00246d
+      name: 'WAN: is used'
+      type: CALCULATED
+      key: wan.is.used
+      delay: '600'
+      history: 1d
+      params: '{$M_WAN_IS_USED}'
+      description: |
+        Monitors if the WAN connected interface in the device is in use.
+        If the device is not used, set $M_WAN_IS_USED to 0
+      valuemap:
+        name: True/False
+      tags:
+      - tag: Application
+        value: Fiber::Metadata
+    macros:
+    - macro: '{$I_WAN_INT}'
+      value: FastEthernet3
+    - macro: '{$M_WAN_IS_USED}'
+      value: '1'
+    valuemaps:
+    - uuid: 67946498c2e140a78eca5242a450c1f9
+      name: Interface Operational Status
+      mappings:
+      - value: '1'
+        newvalue: up
+      - value: '2'
+        newvalue: down
+      - value: '3'
+        newvalue: testing
+      - value: '4'
+        newvalue: unknown
+      - value: '5'
+        newvalue: dormant
+      - value: '6'
+        newvalue: not present
+      - value: '7'
+        newvalue: lower layer down
+    - uuid: 3efcd458685b4ceeb7fb9b06add8192e
+      name: True/False
+      mappings:
+      - value: '0'
+        newvalue: 'False'
+      - value: '1'
+        newvalue: 'True'
+  graphs:
+  - uuid: 4d34471124b74c079728ae90a27828a9
+    name: 'WAN: Bandwidth Usage'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: GRADIENT_LINE
+      color: 00C800
+      calc_fnc: MAX
+      item:
+        host: WAN Interfaces by SNMP
+        key: wan.int.usage[down]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000BB
+      calc_fnc: MAX
+      item:
+        host: WAN Interfaces by SNMP
+        key: wan.int.usage[up]
+  - uuid: d7e807836b3d43bf93cfdca879302c0e
+    name: 'WAN: Status'
+    show_triggers: NO
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 00CCCC
+      calc_fnc: MAX
+      item:
+        host: WAN Interfaces by SNMP
+        key: wan.int[status]

@@ -1,0 +1,27 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 04989fa90e2e42f89a995992f0e3e7af
+    name: Retigra/Tasks/Aggregation
+  templates:
+  - uuid: 9b9c0494cd1c4c71a709c8f18c13fc09
+    template: t_task_aggregation_host_count
+    name: Template::Task::Aggregation::Host_Count
+    description: Counts the number of hosts in the group specified by $I_AGGR_GROUPNAME
+    groups:
+    - name: Retigra/Tasks/Aggregation
+    items:
+    - uuid: 1f3c18c6b6354c78a9a623c9ad61f467
+      name: 'Aggr: Total number of hosts in {$I_AGGR_GROUPNAME}'
+      type: CALCULATED
+      key: grpsum["{$I_AGGR_GROUPNAME}","aggr.count",last]
+      delay: '300'
+      history: 14d
+      params: sum(last_foreach(/*/aggr.count?[group="{$I_AGGR_GROUPNAME}"]))
+      description: Counts the total number of hosts in the hostgroup  {$I_AGGR_GROUPNAME}.
+      tags:
+      - tag: Application
+        value: Aggregates::Metrics
+    macros:
+    - macro: '{$I_AGGR_GROUPNAME}'
+      value: None

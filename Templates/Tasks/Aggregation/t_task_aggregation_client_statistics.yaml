@@ -1,0 +1,39 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 04989fa90e2e42f89a995992f0e3e7af
+    name: Retigra/Tasks/Aggregation
+  templates:
+  - uuid: 6517216490f34c90855365218ec6c9a8
+    template: t_task_aggregation_client_statistics
+    name: Template::Task::Aggregation::Client_Statistics
+    groups:
+    - name: Retigra/Tasks/Aggregation
+    items:
+    - uuid: 5bfca47aeec3479f96720fa8b8e9ddcf
+      name: 'Aggr: Total number of connected clients'
+      type: TRAP
+      key: aggr.ap.total_clients
+      delay: '0'
+      history: 90d
+      tags:
+      - tag: Application
+        value: Aggregation:Metrics
+    - uuid: 2d196bb4c5c74f9d884c2259fcbd2512
+      name: 'Aggr: Total number of connected clients 5Ghz'
+      type: TRAP
+      key: aggr.ap.total_clients5
+      delay: '0'
+      history: 90d
+      tags:
+      - tag: Application
+        value: Aggregation:Metrics
+    - uuid: 4d674e21a5f24ff996963eb513159366
+      name: 'Aggr: Total number of connected clients 2.4Ghz'
+      type: TRAP
+      key: aggr.ap.total_clients24
+      delay: '0'
+      history: 90d
+      tags:
+      - tag: Application
+        value: Aggregation:Metrics

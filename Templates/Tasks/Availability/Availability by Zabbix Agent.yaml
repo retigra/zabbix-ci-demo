@@ -1,0 +1,109 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 5f8dce94004240149b513836d92db98e
+    name: Retigra/Tasks/Availability
+  templates:
+  - uuid: 173b585a4b654db782b66e4210bacc62
+    template: Availability by Zabbix Agent
+    name: Availability by Zabbix Agent
+    description: Checks Zabbix agent availability status.
+    groups:
+    - name: Retigra/Tasks/Availability
+    items:
+    - uuid: 2e0a9f8429aa4852bcb8a87339280514
+      name: 'Zabbix: agent ping (active)'
+      type: ZABBIX_ACTIVE
+      key: agent.ping
+      delay: '60'
+      history: 7d
+      description: |
+        Zabbix active agent availability check. 
+        Returns 1 if the agent responds, returns nothing if the agent doesn't respond.
+      valuemap:
+        name: Zabbix agent ping status
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 39c6fba876b04385872a6083acc4c153
+        expression: nodata(/Availability by Zabbix Agent/agent.ping,{$T_ZBX_PING_THRESH})=1
+        name: 'Zabbix: Agent is not responding on {HOST.NAME}'
+        priority: AVERAGE
+        description: |
+          The Zabbix agent is not sending responses to agent.ping requests.
+          The agent might be down or there could be network issues between the agent and the Zabbix server.
+    - uuid: e789be3e640a4eaab7f1363bbc25493f
+      name: 'Zabbix: agent availability (passive)'
+      type: INTERNAL
+      key: zabbix[host,agent,available]
+      delay: '60'
+      history: 7d
+      description: |
+        Checks Zabbix passive check availability on the agent. If no passive checks are configured for the host, it will report an unknown state.
+
+        The item value is calculated according to configuration parameters regarding host unreachability/unavailability. 
+
+        See https://www.zabbix.com/documentation/3.0/manual/appendix/items/unreachability for details.
+      valuemap:
+        name: Host availability
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 10adcd99e63948e99dca3472f17cbc3e
+        expression: max(/Availability by Zabbix Agent/zabbix[host,agent,available],{$T_ZBX_UNAVAILABLE_THRESH})=0
+        name: 'Zabbix: Passive checks are unavailable on {HOST.NAME}'
+        url: https://www.zabbix.com/documentation/3.0/manual/appendix/items/unreachability
+        priority: WARNING
+        description: Passive item checks for the Zabbix agent are unavailable at this
+          time.
+        dependencies:
+        - name: 'Zabbix: Agent is not responding on {HOST.NAME}'
+          expression: nodata(/Availability by Zabbix Agent/agent.ping,{$T_ZBX_PING_THRESH})=1
+      - uuid: d7f3107dae3f47d895f932d4ff3ae7d6
+        expression: min(/Availability by Zabbix Agent/zabbix[host,agent,available],{$T_ZBX_UNKNOWN_THRESH})=2
+        name: 'Zabbix: Passive checks status is unknown on {HOST.NAME}'
+        priority: INFO
+        description: |
+          Passive item checks for the Zabbix agent are  in an unknown state at this time. Passive checks might not be configured on the host or the status may be unknown because of an issue with an intermediate Zabbix Proxy.
+
+          See the Zabbix manual for further clarification for this status.
+
+          https://www.zabbix.com/documentation/3.0/manual/appendix/items/unreachability
+    macros:
+    - macro: '{$T_ZBX_PING_THRESH}'
+      value: 5m
+    - macro: '{$T_ZBX_UNAVAILABLE_THRESH}'
+      value: 3m
+    - macro: '{$T_ZBX_UNKNOWN_THRESH}'
+      value: 3m
+    valuemaps:
+    - uuid: 8ed196d3d4bb49698beb802cc5e449ff
+      name: Host availability
+      mappings:
+      - value: '0'
+        newvalue: not available
+      - value: '1'
+        newvalue: available
+      - value: '2'
+        newvalue: unknown
+    - uuid: ce778f7c1e7e4dc5b4d517f010aadd1a
+      name: Zabbix agent ping status
+      mappings:
+      - value: '1'
+        newvalue: Up
+  graphs:
+  - uuid: 2ae7eba718524ab8b017b63d3cb7ea0e
+    name: 'Zabbix: Passive check status'
+    yaxismax: '2'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: GRADIENT_LINE
+      color: CC0000
+      calc_fnc: ALL
+      item:
+        host: Availability by Zabbix Agent
+        key: zabbix[host,agent,available]

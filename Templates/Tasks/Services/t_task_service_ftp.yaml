@@ -1,0 +1,122 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: c447e6b6bb4a47c8a6c70dff390108c9
+    name: Retigra/Tasks/Services
+  templates:
+  - uuid: d7a2e1cc219243e5a9f268874f401184
+    template: t_task_service_ftp
+    name: Template::Task::Service::FTP
+    groups:
+    - name: Retigra/Tasks/Services
+    items:
+    - uuid: 426f0f4a983145d798e8b68a03ee9e2d
+      name: 'FTP: response time threshold'
+      type: CALCULATED
+      key: FtpPerfThresh[{$T_FTP_PERF_THRESH}]
+      delay: '300'
+      history: 1d
+      value_type: FLOAT
+      units: s
+      params: '{$T_FTP_PERF_THRESH}'
+      description: Holds the currently configured FTP response time threshold used
+        in triggers.
+      tags:
+      - tag: Application
+        value: FTP::Metadata
+    - uuid: b9a9f6866a1642c18eb7cd1bd0e72642
+      name: 'FTP: service performance'
+      type: SIMPLE
+      key: net.tcp.service.perf[ftp,{HOST.CONN},{$I_FTP_PORT}]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: Checks FTP service performance by timing the creation of a FTP
+        session on port {$I_FTP_PORT} .
+      tags:
+      - tag: Application
+        value: FTP::Metrics
+    - uuid: c180b24944504394aed29964762818ac
+      name: 'FTP: service state'
+      type: SIMPLE
+      key: net.tcp.service[ftp,{HOST.CONN},{$I_FTP_PORT}]
+      delay: '60'
+      history: 7d
+      description: Checks FTP service state by creating a TCP connection on port {$I_FTP_PORT}  and
+        expects the first 4 characters of the response to be “220 ”, then sends “QUIT\r\n”.
+      valuemap:
+        name: Service state
+      tags:
+      - tag: Application
+        value: FTP::Metrics
+      triggers:
+      - uuid: 3a7ab3a485674a5f9decbc6383a6f68f
+        expression: 
+          max(/t_task_service_ftp/net.tcp.service[ftp,{HOST.CONN},{$I_FTP_PORT}],{$T_FTP_STATE_TIME})=0
+        name: 'FTP: Service is down on {HOST.NAME}'
+        priority: AVERAGE
+        description: |
+          The FTP service on port {$I_FTP_PORT} is not responding or is returning an invalid response.
+          This could be caused by a firewall blocking the traffic, or a FTP service malfunction.
+      - uuid: a4655655f32c4683a1fbce57cb9f17f5
+        expression: 
+          avg(/t_task_service_ftp/net.tcp.service[ftp,{HOST.CONN},{$I_FTP_PORT}],{$T_FTP_PERF_TIME})>{$T_FTP_PERF_THRESH}
+        name: 'FTP: Service response time is too high on {HOST.NAME}'
+        priority: WARNING
+        description: |
+          The FTP service on port {$I_FTP_PORT} is responding too slowly to new connection attempts.
+          This could be due to high link congestion, high system load or a great distance to the host.
+        dependencies:
+        - name: 'FTP: Service is down on {HOST.NAME}'
+          expression: 
+            max(/t_task_service_ftp/net.tcp.service[ftp,{HOST.CONN},{$I_FTP_PORT}],{$T_FTP_STATE_TIME})=0
+    macros:
+    - macro: '{$I_FTP_PORT}'
+      value: '21'
+    - macro: '{$T_FTP_PERF_THRESH}'
+      value: '1'
+    - macro: '{$T_FTP_PERF_TIME}'
+      value: 5m
+    - macro: '{$T_FTP_STATE_TIME}'
+      value: '#3'
+    valuemaps:
+    - uuid: 0583d15ed0ec44ee9ba518f6500cb9b7
+      name: Service state
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+  graphs:
+  - uuid: 3ca6d0bcdab74b2abaf459d5b19b2cdc
+    name: 'FTP: Performance'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MIN
+      item:
+        host: t_task_service_ftp
+        key: FtpPerfThresh[{$T_FTP_PERF_THRESH}]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000CC
+      item:
+        host: t_task_service_ftp
+        key: net.tcp.service.perf[ftp,{HOST.CONN},{$I_FTP_PORT}]
+  - uuid: d13641880c12474281cc52251c39b275
+    name: 'FTP: Service state (1=Up, 0=Down)'
+    yaxismax: '1'
+    show_triggers: NO
+    percent_left: '95'
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 1A7C11
+      calc_fnc: MIN
+      item:
+        host: t_task_service_ftp
+        key: net.tcp.service[ftp,{HOST.CONN},{$I_FTP_PORT}]

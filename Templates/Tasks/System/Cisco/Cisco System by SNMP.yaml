@@ -1,0 +1,168 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: ce925f2eb4b14bc2a13543a194e79013
+    name: Retigra/Tasks/System/Cisco
+  templates:
+  - uuid: 7ee64e109af643ea9587f40a38507c6b
+    template: Cisco System by SNMP
+    name: Cisco System by SNMP
+    groups:
+    - name: Retigra/Tasks/System/Cisco
+    items:
+    - uuid: 76c871473ca94dc88f27cab528b378cd
+      name: CPU Utilization 5 min
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.9.2.1.58.0
+      key: CpuUsage5
+      delay: '300'
+      history: 7d
+      units: '%'
+      tags:
+      - tag: Application
+        value: General::Metrics
+      triggers:
+      - uuid: 5e1424c95ac944c886b80ff60c3e0467
+        expression: avg(/Cisco System by SNMP/CpuUsage5,#3)>{$T_GENERAL_CPU_THRESH}
+        name: CPU load is too high on {HOST.NAME}  (cpu usage > {$T_GENERAL_CPU_THRESH}%)
+        priority: WARNING
+        description: Template CPU_Threshold = 60%
+    - uuid: 33790d3808174a17a82903e4f28a72a3
+      name: Memory Free
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.9.9.48.1.1.1.6.1
+      key: MemFree
+      delay: '300'
+      history: 7d
+      units: bytes
+      tags:
+      - tag: Application
+        value: General::Metrics
+    - uuid: e3bdf549c793438a8affccf839f49065
+      name: Memory Percentage Free Threshold
+      type: CALCULATED
+      key: MemFreeThresh
+      delay: '300'
+      history: 7d
+      units: '%'
+      params: '{$T_GENERAL_FREEMEM_THRESH}'
+      tags:
+      - tag: Application
+        value: General::Metadata
+    - uuid: 1ee7f2745197427aae1443bd7283f0a2
+      name: Memory Percentage Free
+      type: CALCULATED
+      key: MemPercFree
+      delay: '300'
+      history: 7d
+      units: '%'
+      params: last(//MemFree)/(last(//MemUsed)+last(//MemFree))*100
+      tags:
+      - tag: Application
+        value: General::Metrics
+      triggers:
+      - uuid: b596b9e9a57b49d68457f0bb65b03d75
+        expression: avg(/Cisco System by SNMP/MemPercFree,#3)<{$T_GENERAL_FREEMEM_THRESH}
+        name: Running low on free memory on {HOST.NAME}, free memory below {$T_GENERAL_FREEMEM_THRESH}%
+        priority: INFO
+        description: Trigger if free memory percentage is below {$T_GENERAL_FREEMEM_THRESH}
+    - uuid: b6b2d81de04345028815161f06806141
+      name: Memory Used
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.9.9.48.1.1.1.5.1
+      key: MemUsed
+      delay: '300'
+      history: 7d
+      units: bytes
+      tags:
+      - tag: Application
+        value: General::Metrics
+    - uuid: 91c68e768c1e4178974cedcf583c75fa
+      name: Device uptime (snmpEngineTime)
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.6.3.10.2.1.3.0
+      key: snmpEngineTime
+      delay: '300'
+      history: 7d
+      units: uptime
+      description: |
+        The time since the network management portion of the system was last re-initialized (64 bit counter)
+
+        64-bit counter
+      tags:
+      - tag: Application
+        value: General::Metrics
+      triggers:
+      - uuid: 2adf8ea23d8245ecbe9747f90609d4c7
+        expression: last(/Cisco System by SNMP/snmpEngineTime)<{$T_GENERAL_UPTIME_THRESH}
+        name: '{HOST.NAME} has just been restarted, uptime below {$T_GENERAL_UPTIME_THRESH}
+          seconds.'
+        priority: WARNING
+        description: The uptime of the device is below threshold (default 600 seconds)
+      - uuid: 47d6cd1e260643fab4c4dde46b261bef
+        expression: last(/Cisco System by SNMP/snmpEngineTime)>154395000
+        name: '{HOST.NAME} running for more than 5 years.'
+        priority: INFO
+        description: The uptime of the device is more than 5 years
+    macros:
+    - macro: '{$T_GENERAL_CPU_THRESH}'
+      value: '75'
+    - macro: '{$T_GENERAL_FREEMEM_THRESH}'
+      value: '20'
+    - macro: '{$T_GENERAL_UPTIME_THRESH}'
+      value: '600'
+  triggers:
+  - uuid: b1a17a3a0d39412db8dc9394b86ad852
+    expression: nodata(/Cisco System by SNMP/CpuUsage5,43200s)=1 and nodata(/Cisco
+      System by SNMP/MemFree,43200s)=1
+    name: Not receiving monitoring data coming from {HOST.NAME}
+    priority: INFO
+    description: This trigger will go off when we are not receiving any snmp data
+      from this device in the last 12 hr
+  graphs:
+  - uuid: 10765b12672f4b34b264f2670e27adf3
+    name: 'CPU: Usage (%)'
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: GRADIENT_LINE
+      color: 3333FF
+      calc_fnc: MAX
+      item:
+        host: Cisco System by SNMP
+        key: CpuUsage5
+  - uuid: 569bb1d8b49a47d289b7e7381e5808c2
+    name: 'Memory: Usage (%)'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: GRADIENT_LINE
+      color: 3333FF
+      calc_fnc: MIN
+      item:
+        host: Cisco System by SNMP
+        key: MemPercFree
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: EE0000
+      calc_fnc: MIN
+      item:
+        host: Cisco System by SNMP
+        key: MemFreeThresh
+  - uuid: 0ae30173ed554ad0b904614c93ddc69f
+    name: 'Memory: Usage (bytes)'
+    show_triggers: NO
+    type: STACKED
+    graph_items:
+    - color: FF3333
+      yaxisside: RIGHT
+      item:
+        host: Cisco System by SNMP
+        key: MemUsed
+    - sortorder: '1'
+      color: 33FF33
+      yaxisside: RIGHT
+      item:
+        host: Cisco System by SNMP
+        key: MemFree

@@ -1,0 +1,27 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 04989fa90e2e42f89a995992f0e3e7af
+    name: Retigra/Tasks/Aggregation
+  templates:
+  - uuid: a0949ddb102b45ac8d603ccb943708bc
+    template: t_task_aggregation_maintenance
+    name: Template::Task::Aggregation::Maintenance
+    description: Calculates group statistics with regard to maintenance status.
+    groups:
+    - name: Retigra/Tasks/Aggregation
+    items:
+    - uuid: 496fe8babdd84fed8d475fc08636bac4
+      name: 'Aggr: Number of hosts in {$I_AGGR_GROUPNAME} currently in maintenance'
+      type: CALCULATED
+      key: grpsum["{$I_AGGR_GROUPNAME}","zabbix[host,,maintenance]",last]
+      delay: '300'
+      history: 1d
+      params: sum(last_foreach(/*/zabbix[host,,maintenance]?[group="{$I_AGGR_GROUPNAME}"]))
+      description: Counts the number of hosts in maintenance in hostgroup {$I_AGGR_GROUPNAME}.
+      tags:
+      - tag: Application
+        value: Aggregates::Metrics
+    macros:
+    - macro: '{$I_AGGR_GROUPNAME}'
+      value: None

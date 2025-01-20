@@ -1,0 +1,78 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 5f8dce94004240149b513836d92db98e
+    name: Retigra/Tasks/Availability
+  templates:
+  - uuid: d9ba331c81ae42f4b59531f09a2351c0
+    template: Availability by SNMP
+    name: Availability by SNMP
+    description: Checks Zabbix snmp availability status.
+    groups:
+    - name: Retigra/Tasks/Availability
+    items:
+    - uuid: f2ffc90ebaaf4f408daf3911b3a5e330
+      name: 'Zabbix: SNMP availability'
+      type: INTERNAL
+      key: zabbix[host,snmp,available]
+      delay: '60'
+      history: 7d
+      description: |
+        Checks Zabbix SNMP availability on the agent. If no SNMP checks are configured for the host, it will report an unknown state.
+
+        The item value is calculated according to configuration parameters regarding host unreachability/unavailability. 
+
+        See https://www.zabbix.com/documentation/3.0/manual/appendix/items/unreachability for details.
+      valuemap:
+        name: Host availability
+      tags:
+      - tag: Application
+        value: Zabbix::Metrics
+      triggers:
+      - uuid: 73d730b11edc4e8ca4503fb5e796a734
+        expression: max(/Availability by SNMP/zabbix[host,snmp,available],{$T_ZBX_UNAVAILABLE_THRESH})=0
+        name: 'Zabbix: SNMP checks are unavailable on {HOST.NAME}'
+        url: https://www.zabbix.com/documentation/3.0/manual/appendix/items/unreachability
+        priority: WARNING
+        description: SNMP checks for the Zabbix agent are unavailable at this time.
+      - uuid: ee78c926db174b228f3eb9aad74cd996
+        expression: min(/Availability by SNMP/zabbix[host,snmp,available],{$T_ZBX_UNKNOWN_THRESH})=2
+        name: 'Zabbix: SNMP status is unknown on {HOST.NAME}'
+        priority: INFO
+        description: |
+          SNMP checks for the host are  in an unknown state at this time. SNMP checks might not be configured on the host or the status may be unknown because of an issue with an intermediate Zabbix Proxy.
+
+          See the Zabbix manual for further clarification for this status.
+
+          https://www.zabbix.com/documentation/3.0/manual/appendix/items/unreachability
+    macros:
+    - macro: '{$T_ZBX_PING_THRESH}'
+      value: 5m
+    - macro: '{$T_ZBX_UNAVAILABLE_THRESH}'
+      value: 10m
+    - macro: '{$T_ZBX_UNKNOWN_THRESH}'
+      value: 3m
+    valuemaps:
+    - uuid: 7848bab7e31944ad819afe8e6515df40
+      name: Host availability
+      mappings:
+      - value: '0'
+        newvalue: not available
+      - value: '1'
+        newvalue: available
+      - value: '2'
+        newvalue: unknown
+  graphs:
+  - uuid: 331713f66d56477593b5b426a8124edc
+    name: 'Zabbix: Passive check status'
+    yaxismax: '2'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: GRADIENT_LINE
+      color: CC0000
+      calc_fnc: ALL
+      item:
+        host: Availability by SNMP
+        key: zabbix[host,snmp,available]

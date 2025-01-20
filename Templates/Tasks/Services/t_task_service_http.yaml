@@ -1,0 +1,122 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: c447e6b6bb4a47c8a6c70dff390108c9
+    name: Retigra/Tasks/Services
+  templates:
+  - uuid: 8e9cc5b5a23342988560f1e070ed3ad1
+    template: t_task_service_http
+    name: Template::Task::Service::HTTP
+    groups:
+    - name: Retigra/Tasks/Services
+    items:
+    - uuid: 0e3b50f0d40641739595ea58c5679c02
+      name: 'HTTP: response time threshold'
+      type: CALCULATED
+      key: HttpPerfThresh[{$T_HTTP_PERF_THRESH}]
+      delay: '300'
+      history: 1d
+      value_type: FLOAT
+      units: s
+      params: '{$T_HTTP_PERF_THRESH}'
+      description: Holds the currently configured HTTP response time threshold used
+        in triggers.
+      tags:
+      - tag: Application
+        value: HTTP::Metadata
+    - uuid: 5ad3b7aa4ce7406fa2777a61a5595d6d
+      name: 'HTTP: service performance'
+      type: SIMPLE
+      key: net.tcp.service.perf[http,{HOST.CONN},{$I_HTTP_PORT}]
+      delay: '60'
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: Checks HTTP service performance by timing the creation of a HTTP
+        session on port {$I_HTTP_PORT} .
+      tags:
+      - tag: Application
+        value: HTTP::Metrics
+    - uuid: 2496433702af4589a152031cd5df82b2
+      name: 'HTTP: service state'
+      type: SIMPLE
+      key: net.tcp.service[http,{HOST.CONN},{$I_HTTP_PORT}]
+      delay: '60'
+      history: 7d
+      description: Checks HTTP service state by creating a TCP connection on port
+        {$I_HTTP_PORT} .
+      valuemap:
+        name: Service state
+      tags:
+      - tag: Application
+        value: HTTP::Metrics
+      triggers:
+      - uuid: 0a265d5b3b604856930f0a256c2c67af
+        expression: 
+          max(/t_task_service_http/net.tcp.service[http,{HOST.CONN},{$I_HTTP_PORT}],{$T_HTTP_STATE_TIME})=0
+        name: 'HTTP: Service is down on {HOST.NAME}'
+        priority: AVERAGE
+        description: |
+          The HTTP service on port {$I_HTTP_PORT} is not responding or is returning an invalid response.
+          This could be caused by a firewall blocking the traffic, or a HTTP service malfunction.
+      - uuid: 5d3ce7e9e6324ce6b2ded5b54764774e
+        expression: 
+          avg(/t_task_service_http/net.tcp.service[http,{HOST.CONN},{$I_HTTP_PORT}],{$T_HTTP_PERF_TIME})>{$T_HTTP_PERF_THRESH}
+        name: 'HTTP: Service response time is too high on {HOST.NAME}'
+        priority: WARNING
+        description: |
+          The HTTP service on port {$I_HTTP_PORT} is responding too slowly to new connection attempts.
+          This could be due to high link congestion, high system load or a great distance to the host.
+        dependencies:
+        - name: 'HTTP: Service is down on {HOST.NAME}'
+          expression: 
+            max(/t_task_service_http/net.tcp.service[http,{HOST.CONN},{$I_HTTP_PORT}],{$T_HTTP_STATE_TIME})=0
+    macros:
+    - macro: '{$I_HTTP_PORT}'
+      value: '80'
+    - macro: '{$T_HTTP_PERF_THRESH}'
+      value: '1'
+    - macro: '{$T_HTTP_PERF_TIME}'
+      value: 5m
+    - macro: '{$T_HTTP_STATE_TIME}'
+      value: '#3'
+    valuemaps:
+    - uuid: 77969ac2c8824d2f913a7a0ad12490c3
+      name: Service state
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+  graphs:
+  - uuid: 8516ffcbac0f4154a26a7bdd31b72134
+    name: 'HTTP: Performance'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: DASHED_LINE
+      color: BB0000
+      calc_fnc: MIN
+      item:
+        host: t_task_service_http
+        key: HttpPerfThresh[{$T_HTTP_PERF_THRESH}]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000CC
+      item:
+        host: t_task_service_http
+        key: net.tcp.service.perf[http,{HOST.CONN},{$I_HTTP_PORT}]
+  - uuid: aa4133d6cf1c4a3190268f79c2d92cfe
+    name: 'HTTP: Service state (1=Up, 0=Down)'
+    yaxismax: '1'
+    show_triggers: NO
+    percent_left: '95'
+    ymin_type_1: FIXED
+    ymax_type_1: FIXED
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 1A7C11
+      calc_fnc: MIN
+      item:
+        host: t_task_service_http
+        key: net.tcp.service[http,{HOST.CONN},{$I_HTTP_PORT}]

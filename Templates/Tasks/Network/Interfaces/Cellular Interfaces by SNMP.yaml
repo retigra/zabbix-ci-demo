@@ -1,0 +1,649 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 17dc7db2fd4542ca9d7c3f46e40baf97
+    name: Retigra/Tasks/Network/Interfaces
+  templates:
+  - uuid: c0e765a509d74d4680130bfadf844c9d
+    template: Cellular Interfaces by SNMP
+    name: Cellular Interfaces by SNMP
+    description: |
+      Monitors a cellular interface. Set the following macros to specify the used interface and modem device:
+
+      $I_CELL_INT
+      $I_CELL_MODEM
+    groups:
+    - name: Retigra/Tasks/Network/Interfaces
+    items:
+    - uuid: d3dbb476feec4c259015bc9cea740643
+      name: 'Cellular: usage ($1)'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.9.9.661.1.3.2.1.20[index,1.3.6.1.2.1.47.1.1.1.1.7,"{$I_CELL_MODEM}"]
+      key: cell.int.usage[down]
+      delay: '60'
+      history: 7d
+      units: bps
+      description: Monitors the incoming transfer rate of the Cellular device.
+      preprocessing:
+      - type: CHANGE_PER_SECOND
+        parameters:
+        - ''
+      - type: MULTIPLIER
+        parameters:
+        - '8'
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Usage
+    - uuid: 8df0b397c1e742f8ac6719ccee787b8b
+      name: 'Cellular: usage ($1)'
+      type: SNMP_AGENT
+      snmp_oid: ifAlias[index,ifDescr,"{$I_CELL_INT}"]
+      key: cell.int.usage[monthly]
+      delay: '900'
+      history: 7d
+      units: B
+      description: Monitors the monthly Cellular usage (if provided by EEM script)
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Usage
+      triggers:
+      - uuid: c7a1756554234198aa7f0aa65e341621
+        expression: last(/Cellular Interfaces by SNMP/cell.int.usage[monthly])>{$T_CELL_USAGE_THRESH_HIGH}*1073741824
+          and {$T_CELL_USAGE_ALERT}=1
+        name: 'Cellular: More than {$T_CELL_USAGE_THRESH_HIGH} GB of monthly data
+          used'
+        priority: AVERAGE
+        description: |
+          The device has used more than the specified threshold of {$T_CELL_USAGE_THRESH_HIGH} GB on it's cellular interface.
+
+          This could lead to added dataplan costs for this location.
+      - uuid: 6f3609dc2c9144009d72ce113d389e96
+        expression: last(/Cellular Interfaces by SNMP/cell.int.usage[monthly])>{$T_CELL_USAGE_THRESH}*1073741824
+          and {$T_CELL_USAGE_ALERT}=1
+        name: 'Cellular: More than {$T_CELL_USAGE_THRESH} GB of monthly data used'
+        priority: WARNING
+        description: |
+          The device has used more than the specified threshold of {$T_CELL_USAGE_THRESH} GB on it's cellular interface.
+
+          This could lead to added dataplan costs for this location.
+        dependencies:
+        - name: 'Cellular: More than {$T_CELL_USAGE_THRESH_HIGH} GB of monthly data
+            used'
+          expression: last(/Cellular Interfaces by SNMP/cell.int.usage[monthly])>{$T_CELL_USAGE_THRESH_HIGH}*1073741824
+            and {$T_CELL_USAGE_ALERT}=1
+    - uuid: 42724defd71b4458a1d73a1d76b30c55
+      name: 'Cellular: usage ($1)'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.9.9.661.1.3.2.1.19[index,1.3.6.1.2.1.47.1.1.1.1.7,"{$I_CELL_MODEM}"]
+      key: cell.int.usage[up]
+      delay: '60'
+      history: 7d
+      units: bps
+      description: Monitors the outgoing transfer rate of the Cellular device.
+      preprocessing:
+      - type: CHANGE_PER_SECOND
+        parameters:
+        - ''
+      - type: MULTIPLIER
+        parameters:
+        - '8'
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Usage
+    - uuid: 1613420a5aa945f4bedb2f7f372e5cf4
+      name: 'Cellular: interface operational status'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.2.2.1.8[index,.1.3.6.1.2.1.2.2.1.2,"{$I_CELL_INT}"]
+      key: cell.int[status]
+      delay: '60'
+      history: 7d
+      description: Monitors cellular interface state.
+      valuemap:
+        name: Interface Operational Status
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Status
+    - uuid: 4d76840c00d241ebaaca84c0c66557b3
+      name: 'Cellular: is backup'
+      type: CALCULATED
+      key: cell.is.backup
+      delay: '600'
+      history: 1d
+      params: '{$M_CELL_IS_BACKUP}'
+      description: |
+        Monitors if the cellular modem is used as a backup interface.
+        If the device is used as a primary connection, set {$M_CELL_IS_BACKUP} to 0.
+      valuemap:
+        name: True/False
+      tags:
+      - tag: Application
+        value: Cellular::Metadata
+    - uuid: 9aaa7b38ddc64ce296ccc09d866cf568
+      name: 'Cellular: is used'
+      type: CALCULATED
+      key: cell.is.used
+      delay: '600'
+      history: 1d
+      params: '{$M_CELL_IS_USED}'
+      description: |
+        Monitors if the cellular modem in the device is in use.
+        If the modem is not used, set {$M_CELL_IS_USED} to 0.
+      valuemap:
+        name: True/False
+      tags:
+      - tag: Application
+        value: Cellular::Metadata
+    - uuid: 8e889dc6f2564635be0ad10736975d77
+      name: 'Cellular: modem imei'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.9.9.661.1.3.1.1.2[index,1.3.6.1.2.1.47.1.1.1.1.7,"{$I_CELL_MODEM}"]
+      key: cell.modem[imei]
+      delay: '7200'
+      history: 7d
+      value_type: CHAR
+      trends: '0'
+      description: The International Mobile Equipment Identity of the cellular modem.
+      valuemap:
+        name: CellularModemState
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Status
+    - uuid: 5834559a03fd4b79a8646d572221a950
+      name: 'Cellular: modem state'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.9.9.661.1.1.1.3[index,1.3.6.1.2.1.47.1.1.1.1.7,"{$I_CELL_MODEM}"]
+      key: cell.modem[status]
+      delay: '3600'
+      history: 7d
+      description: Monitors the state of the cellular modem.
+      valuemap:
+        name: CellularModemState
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Status
+    - uuid: 4fb4dbcc3a0b4218b002ac4622be656b
+      name: 'Cellular: temperature'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.9.9.661.1.1.1.12[index,1.3.6.1.2.1.47.1.1.1.1.7,"{$I_CELL_MODEM}"]
+      key: cell.modem[temp]
+      delay: '1800'
+      history: 7d
+      units: °C
+      description: Monitors the cellular modem temperature
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+    - uuid: b0513e1af5114ccea198e45c8abea86e
+      name: 'Cellular: RSSI (average)'
+      type: CALCULATED
+      key: cell.rssi[avg]
+      delay: '14400'
+      history: 7d
+      value_type: FLOAT
+      units: dbm
+      params: avg(//cell.rssi[cur],86400s)
+      description: Average cellular reception over the last 24hrs.
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Service
+      triggers:
+      - uuid: ab09cfdefdc44ce7b2c328b61756b2e5
+        expression: min(/Cellular Interfaces by SNMP/cell.rssi[avg],{$T_CELL_RSSI_TIME})<{$T_CELL_RSSI_THRESH}
+          and count(/Cellular Interfaces by SNMP/cell.rssi[avg],#1:now-1d)>5
+        name: 'Cellular: Average Receive Signal Strengh Index (RSSI) is below {$T_CELL_RSSI_THRESH}
+          dBm'
+        priority: WARNING
+        description: |
+          This means that average signal reception is very low and could possibly impact connectivity. 
+
+          Try re-positioning the antennas or moving the device to a better location. Remove any interference sources if possible.
+
+          Average RSSI (last 24hr): {ITEM.VALUE1}
+        dependencies:
+        - name: 'Cellular: SIM card not found'
+          expression: length(last(/Cellular Interfaces by SNMP/cell.sim[iccid]))<{$I_CELL_ICCID_LEN}
+            and last(/Cellular Interfaces by SNMP/cell.is.used)=1
+    - uuid: 6bd2b564ad5d48729537f6bec072fac9
+      name: 'Cellular: RSSI (current)'
+      type: SNMP_AGENT
+      snmp_oid: 
+        1.3.6.1.4.1.9.9.661.1.3.4.1.1.1[index,1.3.6.1.2.1.47.1.1.1.1.7,"{$I_CELL_MODEM}"]
+      key: cell.rssi[cur]
+      delay: '300'
+      history: 5d
+      value_type: FLOAT
+      units: dBm
+      description: Monitors the current cellular reception strength.
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Service
+    - uuid: 9652ba324db44aac91227ad5f65a848a
+      name: 'Cellular: cell ID'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.9.9.661.1.3.2.1.13[index,1.3.6.1.2.1.47.1.1.1.1.7,"{$I_CELL_MODEM}"]
+      key: cell.service[cellid]
+      delay: '1800'
+      history: 7d
+      trends: 90d
+      description: Current cell id used by the cellular modem.
+      valuemap:
+        name: CellularPacketService
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Service
+    - uuid: 7514e550c3cc44ac9afd3021fc934308
+      name: 'Cellular: GSM band'
+      type: SNMP_AGENT
+      snmp_oid: 
+        1.3.6.1.4.1.9.9.661.1.3.4.1.1.3[index,1.3.6.1.2.1.47.1.1.1.1.7,"{$I_CELL_MODEM}"]
+      key: cell.service[gsmband]
+      delay: '600'
+      history: 7d
+      description: Monitors the current GSM band used by the cellular modem.
+      valuemap:
+        name: CurrentGsmBand
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Service
+    - uuid: 7deff6bbb36a49b49a3d5ae543173958
+      name: 'Cellular: packet service'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.9.9.661.1.3.2.1.5[index,1.3.6.1.2.1.47.1.1.1.1.7,"{$I_CELL_MODEM}"]
+      key: cell.service[packet]
+      delay: '600'
+      history: 5d
+      trends: 90d
+      description: Current packet service used by the cellular modem.
+      valuemap:
+        name: CellularPacketService
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Service
+    - uuid: 3d5347c5f32b49119f2a72d2ad36f755
+      name: 'Cellular: SIM card ICCID'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.4.1.9.9.661.1.3.1.1.3[index,1.3.6.1.2.1.47.1.1.1.1.7,"{$I_CELL_MODEM}"]
+      key: cell.sim[iccid]
+      delay: '1800'
+      history: 7d
+      value_type: TEXT
+      trends: '0'
+      description: SIM card ICCID in the cellular modem.
+      inventory_link: SERIALNO_B
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Status
+      triggers:
+      - uuid: 837bc01933d74f41a630afd8871bb3f5
+        expression: (last(/Cellular Interfaces by SNMP/cell.sim[iccid],#1)<>last(/Cellular
+          Interfaces by SNMP/cell.sim[iccid],#2))=1
+        name: 'Cellular: SIM card changed'
+        priority: INFO
+        description: |
+          The SIM card ICCID in the cellular modem has been changed recently.
+          Current ICCID: {ITEM.LASTVALUE1}
+        dependencies:
+        - name: 'Cellular: SIM card status: {ITEM.VALUE1}'
+          expression: last(/Cellular Interfaces by SNMP/cell.sim[status])<>2 and last(/Cellular
+            Interfaces by SNMP/cell.is.used)=1
+    - uuid: fe5a47b64b2c4e4297b82457794b709f
+      name: 'Cellular: SIM network provider'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.4.1.9.9.661.1.3.2.1.9[index,1.3.6.1.2.1.47.1.1.1.1.7,"{$I_CELL_MODEM}"]
+      key: cell.sim[network]
+      delay: '7200'
+      history: 7d
+      value_type: CHAR
+      trends: '0'
+      description: Current SIM network provider
+      valuemap:
+        name: SimStatus
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Status
+    - uuid: 69548bf33ce34ab1a1c1be83d06a801d
+      name: 'Cellular: SIM roaming status'
+      type: SNMP_AGENT
+      snmp_oid: .1.3.6.1.4.1.9.9.661.1.3.2.1.6[index,1.3.6.1.2.1.47.1.1.1.1.7,"{$I_CELL_MODEM}"]
+      key: cell.sim[roaming]
+      delay: '7200'
+      history: 7d
+      description: Shows the roaming status of the sim-card in de cellular modem.
+      valuemap:
+        name: CellularRoamingStatus
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Status
+    - uuid: 51e6e539610442d789c469e633b7b0a0
+      name: 'Cellular: SIM status'
+      type: SNMP_AGENT
+      snmp_oid: 
+        1.3.6.1.4.1.9.9.661.1.3.5.1.1.2[index,1.3.6.1.2.1.47.1.1.1.1.7,"{$I_CELL_MODEM}"]
+      key: cell.sim[status]
+      delay: '1800'
+      history: 7d
+      description: Monitors SIM status in the cellular modem.
+      valuemap:
+        name: SimStatus
+      tags:
+      - tag: Application
+        value: Cellular::Metrics
+      - tag: Application
+        value: Cellular::Status
+    - uuid: 485882b88dba45b08a7f90eff578ba89
+      name: 'Cellular: RSSI Threshold'
+      type: CALCULATED
+      key: CellRssiThresh
+      delay: '600'
+      history: 1d
+      value_type: FLOAT
+      units: dBm
+      params: '{$T_CELL_RSSI_THRESH}'
+      description: Stores the configured RSSI threshold value.
+      tags:
+      - tag: Application
+        value: Cellular::Metadata
+    discovery_rules:
+    - uuid: 063f202090864cc389fb051e6869e59c
+      name: SIM profile discovery
+      type: SNMP_AGENT
+      snmp_oid: discovery[{#SNMPVALUE},.1.3.6.1.4.1.9.9.661.1.3.3.1.1.4]
+      key: discovery.cell[simprofile]
+      delay: '3600'
+      lifetime: 30d
+      enabled_lifetime_type: DISABLE_NEVER
+      item_prototypes:
+      - uuid: 79be422fd96f42ce9c784d56a610fc34
+        name: 'Cellular: Profile {#SNMPVALUE} address'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.4.1.9.9.661.1.3.3.2.1.3.{#SNMPINDEX}
+        key: cell.profile.address[{#SNMPVALUE}]
+        delay: '300'
+        history: 90d
+        value_type: CHAR
+        trends: '0'
+        description: The PDP address used by this SIM profile
+        tags:
+        - tag: Application
+          value: Cellular::Metrics
+      - uuid: 05a746024d2f4224acc3cbd159b1920a
+        name: 'Cellular: Profile {#SNMPVALUE} APN'
+        type: SNMP_AGENT
+        snmp_oid: .1.3.6.1.4.1.9.9.661.1.3.3.1.1.4.{#SNMPINDEX}
+        key: cell.profile.name[{#SNMPVALUE}]
+        delay: '30'
+        history: 3600d
+        value_type: CHAR
+        trends: '0'
+        description: The APN name of this SIM profile
+        tags:
+        - tag: Application
+          value: Cellular::Metrics
+      - uuid: f55ead19cc084047a9a606a52390d271
+        name: 'Cellular: Profile {#SNMPVALUE} status'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.4.1.9.9.661.1.3.3.2.1.1.{#SNMPINDEX}
+        key: cell.profile.status[{#SNMPVALUE}]
+        delay: '300'
+        history: 90d
+        description: The status of the SIM profile
+        valuemap:
+          name: SimProfileStatus
+        tags:
+        - tag: Application
+          value: Cellular::Metrics
+    macros:
+    - macro: '{$I_CELL_ICCID_LEN}'
+      value: '19'
+    - macro: '{$I_CELL_INT}'
+      value: Cellular0
+    - macro: '{$I_CELL_MODEM}'
+      value: Modem 0 on Cellular0
+    - macro: '{$M_CELL_IS_BACKUP}'
+      value: '1'
+    - macro: '{$M_CELL_IS_USED}'
+      value: '1'
+    - macro: '{$T_CELL_RSSI_THRESH}'
+      value: '-90'
+    - macro: '{$T_CELL_RSSI_TIME}'
+      value: '#3'
+    - macro: '{$T_CELL_USAGE_ALERT}'
+      value: '1'
+    - macro: '{$T_CELL_USAGE_THRESH}'
+      value: '10'
+    - macro: '{$T_CELL_USAGE_THRESH_HIGH}'
+      value: '20'
+    valuemaps:
+    - uuid: f627175b18dd44a59e5b019b35807da9
+      name: CellularModemState
+      mappings:
+      - value: '1'
+        newvalue: unknown
+      - value: '2'
+        newvalue: up
+      - value: '3'
+        newvalue: down
+    - uuid: a7db45e9219e4b10b70332b0657224ee
+      name: CellularPacketService
+      mappings:
+      - value: '1'
+        newvalue: unknown
+      - value: '2'
+        newvalue: none
+      - value: '3'
+        newvalue: GPRS
+      - value: '4'
+        newvalue: EDGE
+      - value: '5'
+        newvalue: UMTS/WCDMA
+      - value: '6'
+        newvalue: HSDPA
+      - value: '7'
+        newvalue: HSUPA
+      - value: '8'
+        newvalue: HSPA
+      - value: '9'
+        newvalue: HSPA+
+      - value: '10'
+        newvalue: LTE
+    - uuid: d437305c658b49208737294e669fba31
+      name: CellularRoamingStatus
+      mappings:
+      - value: '1'
+        newvalue: unknown
+      - value: '2'
+        newvalue: roaming
+      - value: '3'
+        newvalue: home
+    - uuid: f3b704746fa54b5681c05bd4657c9290
+      name: CurrentGsmBand
+      mappings:
+      - value: '1'
+        newvalue: unknown
+      - value: '2'
+        newvalue: invalid
+      - value: '3'
+        newvalue: none
+      - value: '4'
+        newvalue: GSM 850
+      - value: '5'
+        newvalue: GSM 900
+      - value: '6'
+        newvalue: GSM 1800
+      - value: '7'
+        newvalue: GSM 1900
+      - value: '8'
+        newvalue: WCDMA 800
+      - value: '9'
+        newvalue: WCDMA 850
+      - value: '10'
+        newvalue: WCDMA 1900
+      - value: '11'
+        newvalue: WCDMA 2100
+      - value: '12'
+        newvalue: LTE
+    - uuid: 81ebff621a3a4a49abe3d4489c4e6851
+      name: Interface Operational Status
+      mappings:
+      - value: '1'
+        newvalue: up
+      - value: '2'
+        newvalue: down
+      - value: '3'
+        newvalue: testing
+      - value: '4'
+        newvalue: unknown
+      - value: '5'
+        newvalue: dormant
+      - value: '6'
+        newvalue: not present
+      - value: '7'
+        newvalue: lower layer down
+    - uuid: cfee815b6f6a4d2798214bbf10c3cd9a
+      name: SimProfileStatus
+      mappings:
+      - value: '1'
+        newvalue: unknown
+      - value: '2'
+        newvalue: active
+      - value: '3'
+        newvalue: inactive
+    - uuid: 7182bb81c8c1401e80561f6ca957b8b1
+      name: SimStatus
+      mappings:
+      - value: '0'
+        newvalue: unknown
+      - value: '1'
+        newvalue: ok
+      - value: '3'
+        newvalue: not inserted
+      - value: '4'
+        newvalue: removed
+      - value: '5'
+        newvalue: init failure
+      - value: '6'
+        newvalue: general failure
+      - value: '7'
+        newvalue: locked
+      - value: '13'
+        newvalue: network rejected
+    - uuid: ec988c4c5cf5402f92e904fb7d4088cb
+      name: True/False
+      mappings:
+      - value: '0'
+        newvalue: 'False'
+      - value: '1'
+        newvalue: 'True'
+  triggers:
+  - uuid: 94976a14a3df47a280f18947de19a396
+    expression: last(/Cellular Interfaces by SNMP/cell.int[status])=1 and last(/Cellular
+      Interfaces by SNMP/cell.is.backup)=1 and last(/Cellular Interfaces by SNMP/cell.is.used)=1
+    name: 'Cellular: Backup interface is active'
+    priority: WARNING
+    description: |
+      The cellular interface in this device is active. if $M_CELL_IS_BACKUP is set to 1, this probably means the primary connection is down and the location is using the backup cellular connection.
+
+      If the cellular interface is the primary interface, set $M_CELL_IS_BACKUP to 0 to disable this alert.
+  - uuid: 69b7f6531f02489f9f81449541c6d445
+    expression: length(last(/Cellular Interfaces by SNMP/cell.sim[iccid]))<{$I_CELL_ICCID_LEN}
+      and last(/Cellular Interfaces by SNMP/cell.is.used)=1
+    name: 'Cellular: SIM card not found'
+    priority: WARNING
+    description: |
+      The SIM card in the cellular modem cannot be read. 
+
+      If the modem in this device is not in use, set $M_CELL_IS_USED to 0 to ignore this error.
+  - uuid: 5a70c54b8bd549a09bc99c6c22479327
+    expression: last(/Cellular Interfaces by SNMP/cell.sim[status])<>2 and last(/Cellular
+      Interfaces by SNMP/cell.is.used)=1
+    name: 'Cellular: SIM card status: {ITEM.VALUE1}'
+    priority: WARNING
+    description: |
+      The SIM card in the cellular modem is in an error state.
+
+      If the modem in this device is not in use, set $M_CELL_IS_USED to 0 to ignore these errors.
+    dependencies:
+    - name: 'Cellular: SIM card not found'
+      expression: length(last(/Cellular Interfaces by SNMP/cell.sim[iccid]))<{$I_CELL_ICCID_LEN}
+        and last(/Cellular Interfaces by SNMP/cell.is.used)=1
+  graphs:
+  - uuid: 655865a708ad44f9b046091c3268087b
+    name: 'Cellular: Bandwidth Usage'
+    show_triggers: NO
+    ymin_type_1: FIXED
+    graph_items:
+    - drawtype: GRADIENT_LINE
+      color: 00C800
+      calc_fnc: MAX
+      item:
+        host: Cellular Interfaces by SNMP
+        key: cell.int.usage[down]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000BB
+      calc_fnc: MAX
+      item:
+        host: Cellular Interfaces by SNMP
+        key: cell.int.usage[up]
+  - uuid: 4eac5590f87a4a54a7a15b31a730bd21
+    name: 'Cellular: Signal Reception'
+    show_triggers: NO
+    graph_items:
+    - drawtype: GRADIENT_LINE
+      color: '888800'
+      calc_fnc: MIN
+      item:
+        host: Cellular Interfaces by SNMP
+        key: cell.rssi[cur]
+    - sortorder: '1'
+      drawtype: BOLD_LINE
+      color: 0000AA
+      calc_fnc: MIN
+      item:
+        host: Cellular Interfaces by SNMP
+        key: cell.rssi[avg]
+    - sortorder: '2'
+      drawtype: DASHED_LINE
+      color: EE0000
+      calc_fnc: MIN
+      item:
+        host: Cellular Interfaces by SNMP
+        key: CellRssiThresh
+  - uuid: bca0fcd27ae24e0da90bc60977ea1867
+    name: 'Cellular: Status'
+    show_triggers: NO
+    graph_items:
+    - drawtype: FILLED_REGION
+      color: 00CCCC
+      calc_fnc: MAX
+      item:
+        host: Cellular Interfaces by SNMP
+        key: cell.int[status]
